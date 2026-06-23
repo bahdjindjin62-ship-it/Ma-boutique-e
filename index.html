@@ -1,0 +1,1560 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="default" />
+<meta name="apple-mobile-web-app-title" content="Ma Boutique" />
+<meta name="theme-color" content="#A65E3A" />
+<meta name="description" content="Application de gestion de boutique — stock, ventes, clients et rapports." />
+<title>Ma Boutique — Gestion</title>
+
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%23A65E3A'/%3E%3Ctext x='50' y='68' font-size='56' font-family='sans-serif' font-weight='700' fill='white' text-anchor='middle'%3EB%3C/text%3E%3C/svg%3E" />
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%23A65E3A'/%3E%3Ctext x='50' y='68' font-size='56' font-family='sans-serif' font-weight='700' fill='white' text-anchor='middle'%3EB%3C/text%3E%3C/svg%3E" />
+<link rel="manifest" href="manifest.json" />
+
+<script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script src="https://unpkg.com/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
+<style>
+  html, body { margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; overscroll-behavior-y: none; }
+  #root { min-height: 100vh; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel" data-presets="react">
+// ============================================================================
+// Ma Boutique — Application complète de gestion
+// ============================================================================
+const { useState, useEffect, useMemo, useCallback, useRef } = React;
+
+// ---------- Icons (inline SVG, no external deps) ----------
+function IconBase({ children, size = 16, color = "currentColor", strokeWidth = 2 }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color}
+      strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round">
+      {children}
+    </svg>
+  );
+}
+const Package = (p) => <IconBase {...p}><path d="M16.5 9.4 7.5 4.21" /><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" /><path d="m3.3 7 8.7 5 8.7-5" /><path d="M12 22V12" /></IconBase>;
+const ShoppingCart = (p) => <IconBase {...p}><circle cx="8" cy="21" r="1" /><circle cx="19" cy="21" r="1" /><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12" /></IconBase>;
+const BarChart3 = (p) => <IconBase {...p}><path d="M3 3v18h18" /><path d="M18 17V9" /><path d="M13 17V5" /><path d="M8 17v-3" /></IconBase>;
+const Plus = (p) => <IconBase {...p}><path d="M5 12h14" /><path d="M12 5v14" /></IconBase>;
+const Minus = (p) => <IconBase {...p}><path d="M5 12h14" /></IconBase>;
+const Trash2 = (p) => <IconBase {...p}><path d="M3 6h18" /><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" /><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" /><line x1="10" x2="10" y1="11" y2="17" /><line x1="14" x2="14" y1="11" y2="17" /></IconBase>;
+const Search = (p) => <IconBase {...p}><circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" /></IconBase>;
+const TrendingUp = (p) => <IconBase {...p}><polyline points="22 7 13.5 15.5 8.5 10.5 2 17" /><polyline points="16 7 22 7 22 13" /></IconBase>;
+const AlertTriangle = (p) => <IconBase {...p}><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3" /><path d="M12 9v4" /><path d="M12 17h.01" /></IconBase>;
+const X = (p) => <IconBase {...p}><path d="M18 6 6 18" /><path d="m6 6 12 12" /></IconBase>;
+const Edit3 = (p) => <IconBase {...p}><path d="M12 20h9" /><path d="M16.38 3.62a2.12 2.12 0 1 1 3 3L7.5 18.5 2 20l1.5-5.5Z" /></IconBase>;
+const DollarSign = (p) => <IconBase {...p}><line x1="12" x2="12" y1="2" y2="22" /><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" /></IconBase>;
+const Boxes = (p) => <IconBase {...p}><path d="M2.97 12.92A2 2 0 0 0 2 14.63v3.24a2 2 0 0 0 .97 1.71l3 1.8a2 2 0 0 0 2.06 0L12 19v-5.5l-5-3-4.03 2.42Z" /><path d="m7 16.5-4.74-2.85" /><path d="m7 16.5 5-3" /><path d="M7 16.5v5.17" /><path d="M12 13.5V19l3.97 2.38a2 2 0 0 0 2.06 0l3-1.8a2 2 0 0 0 .97-1.71v-3.24a2 2 0 0 0-.97-1.71L17 10.5l-5 3Z" /><path d="m17 16.5-5-3" /><path d="m17 16.5 4.74-2.85" /><path d="M17 16.5v5.17" /><path d="M7.97 4.42A2 2 0 0 1 9 2.71h6a2 2 0 0 1 1.03 1.71v3.24a2 2 0 0 1-.97 1.71L12 12 8.94 9.37a2 2 0 0 1-.97-1.71Z" /></IconBase>;
+const Receipt = (p) => <IconBase {...p}><path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1Z" /><path d="M16 8h-6" /><path d="M16 12h-6" /><path d="M9 16h1" /></IconBase>;
+const Users = (p) => <IconBase {...p}><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M22 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" /></IconBase>;
+const Download = (p) => <IconBase {...p}><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" x2="12" y1="15" y2="3" /></IconBase>;
+const Printer = (p) => <IconBase {...p}><polyline points="6 9 6 2 18 2 18 9" /><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" /><rect width="12" height="8" x="6" y="14" /></IconBase>;
+const CreditCard = (p) => <IconBase {...p}><rect width="20" height="14" x="2" y="5" rx="2" /><line x1="2" x2="22" y1="10" y2="10" /></IconBase>;
+const ChevronDown = (p) => <IconBase {...p}><path d="m6 9 6 6 6-6" /></IconBase>;
+const UserCircle = (p) => <IconBase {...p}><circle cx="12" cy="12" r="10" /><circle cx="12" cy="10" r="3" /><path d="M7 20.66A9 9 0 0 1 12 19a9 9 0 0 1 5 1.66" /></IconBase>;
+const Phone = (p) => <IconBase {...p}><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z" /></IconBase>;
+const Check = (p) => <IconBase {...p}><path d="M20 6 9 17l-5-5" /></IconBase>;
+
+// ---------- Utils ----------
+const fmt = (n) => new Intl.NumberFormat("fr-FR").format(Math.round(n || 0)) + " GNF";
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+const todayKey = () => new Date().toISOString().slice(0, 10);
+
+function fmtDateTime(iso) {
+  const d = new Date(iso);
+  return d.toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit", year: "numeric" }) +
+    " à " + d.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
+}
+
+// ---------- Storage (localStorage, namespaced) ----------
+const KEYS = {
+  PRODUCTS: "boutique:products",
+  SALES: "boutique:sales",
+  CLIENTS: "boutique:clients",
+  VENDORS: "boutique:vendors",
+  ACTIVE_VENDOR: "boutique:activeVendor",
+};
+
+function lsGet(key, fallback) {
+  try {
+    const v = localStorage.getItem(key);
+    return v ? JSON.parse(v) : fallback;
+  } catch (e) {
+    return fallback;
+  }
+}
+function lsSet(key, value) {
+  try {
+    localStorage.setItem(key, JSON.stringify(value));
+  } catch (e) {
+    console.error("storage write failed", e);
+  }
+}
+
+// ---------- Seed data ----------
+const SEED_PRODUCTS = [
+  { id: uid(), name: "Chemise homme", category: "Vêtements", price: 120000, cost: 80000, stock: 14, minStock: 5 },
+  { id: uid(), name: "Robe femme", category: "Vêtements", price: 200000, cost: 130000, stock: 8, minStock: 4 },
+  { id: uid(), name: "Sandales", category: "Chaussures", price: 90000, cost: 55000, stock: 3, minStock: 5 },
+  { id: uid(), name: "Sac à main", category: "Accessoires", price: 150000, cost: 95000, stock: 6, minStock: 3 },
+  { id: uid(), name: "Casquette", category: "Accessoires", price: 35000, cost: 18000, stock: 20, minStock: 8 },
+];
+const SEED_VENDORS = [{ id: uid(), name: "Gérant·e" }];
+// ---------- Main App ----------
+function App() {
+  const [tab, setTab] = useState("vente");
+  const [products, setProducts] = useState([]);
+  const [sales, setSales] = useState([]);
+  const [clients, setClients] = useState([]);
+  const [vendors, setVendors] = useState([]);
+  const [activeVendorId, setActiveVendorId] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [toast, setToast] = useState(null);
+  const [receiptSale, setReceiptSale] = useState(null);
+
+  useEffect(() => {
+    const p = lsGet(KEYS.PRODUCTS, null);
+    const s = lsGet(KEYS.SALES, []);
+    const c = lsGet(KEYS.CLIENTS, []);
+    const v = lsGet(KEYS.VENDORS, null);
+    const av = lsGet(KEYS.ACTIVE_VENDOR, null);
+
+    const finalProducts = p && p.length ? p : SEED_PRODUCTS;
+    const finalVendors = v && v.length ? v : SEED_VENDORS;
+    if (!p) lsSet(KEYS.PRODUCTS, finalProducts);
+    if (!v) lsSet(KEYS.VENDORS, finalVendors);
+
+    setProducts(finalProducts);
+    setSales(s);
+    setClients(c);
+    setVendors(finalVendors);
+    setActiveVendorId(av || finalVendors[0]?.id || null);
+    setLoading(false);
+  }, []);
+
+  const showToast = useCallback((msg, kind = "success") => {
+    setToast({ msg, kind, id: uid() });
+    setTimeout(() => setToast(null), 2400);
+  }, []);
+
+  const updateProducts = useCallback((next) => {
+    setProducts(next);
+    lsSet(KEYS.PRODUCTS, next);
+  }, []);
+  const updateSales = useCallback((next) => {
+    setSales(next);
+    lsSet(KEYS.SALES, next);
+  }, []);
+  const updateClients = useCallback((next) => {
+    setClients(next);
+    lsSet(KEYS.CLIENTS, next);
+  }, []);
+  const updateVendors = useCallback((next) => {
+    setVendors(next);
+    lsSet(KEYS.VENDORS, next);
+  }, []);
+  const setActiveVendor = useCallback((id) => {
+    setActiveVendorId(id);
+    lsSet(KEYS.ACTIVE_VENDOR, id);
+  }, []);
+
+  const activeVendor = vendors.find((v) => v.id === activeVendorId) || vendors[0];
+
+  if (loading) {
+    return (
+      <div style={styles.loadingScreen}>
+        <div style={styles.loadingDot} />
+        <span style={{ marginLeft: 12, color: "#8a8378" }}>Chargement de la boutique…</span>
+      </div>
+    );
+  }
+
+  return (
+    <div style={styles.app}>
+      <style>{globalCss}</style>
+      <Header
+        tab={tab} setTab={setTab}
+        vendors={vendors} activeVendor={activeVendor} setActiveVendor={setActiveVendor}
+        updateVendors={updateVendors} showToast={showToast}
+      />
+      <main style={styles.main}>
+        {tab === "vente" && (
+          <VenteTab
+            products={products} updateProducts={updateProducts}
+            sales={sales} updateSales={updateSales}
+            clients={clients} updateClients={updateClients}
+            activeVendor={activeVendor}
+            showToast={showToast}
+            onShowReceipt={setReceiptSale}
+          />
+        )}
+        {tab === "stock" && (
+          <StockTab products={products} updateProducts={updateProducts} showToast={showToast} />
+        )}
+        {tab === "clients" && (
+          <ClientsTab
+            clients={clients} updateClients={updateClients}
+            sales={sales} updateSales={updateSales}
+            showToast={showToast}
+          />
+        )}
+        {tab === "rapports" && (
+          <RapportsTab products={products} sales={sales} clients={clients} />
+        )}
+      </main>
+      {toast && <Toast toast={toast} />}
+      {receiptSale && (
+        <ReceiptModal sale={receiptSale} onClose={() => setReceiptSale(null)} />
+      )}
+    </div>
+  );
+}
+
+// ---------- Header / Nav ----------
+function Header({ tab, setTab, vendors, activeVendor, setActiveVendor, updateVendors, showToast }) {
+  const [vendorMenuOpen, setVendorMenuOpen] = useState(false);
+  const [addingVendor, setAddingVendor] = useState(false);
+  const [newVendorName, setNewVendorName] = useState("");
+
+  const items = [
+    { id: "vente", label: "Vente", icon: ShoppingCart },
+    { id: "stock", label: "Stock", icon: Boxes },
+    { id: "clients", label: "Clients", icon: Users },
+    { id: "rapports", label: "Rapports", icon: BarChart3 },
+  ];
+
+  const addVendor = () => {
+    const name = newVendorName.trim();
+    if (!name) return;
+    const v = { id: uid(), name };
+    updateVendors([...vendors, v]);
+    setActiveVendor(v.id);
+    setNewVendorName("");
+    setAddingVendor(false);
+    setVendorMenuOpen(false);
+    showToast(`Vendeur "${name}" ajouté`);
+  };
+
+  return (
+    <header style={styles.header}>
+      <div style={styles.brandRow}>
+        <div style={styles.brandMark}>B</div>
+        <div style={{ flex: 1 }}>
+          <div style={styles.brandTitle}>Ma Boutique</div>
+          <div style={styles.brandSub}>Gestion quotidienne</div>
+        </div>
+
+        <div style={{ position: "relative" }}>
+          <button
+            onClick={() => setVendorMenuOpen((o) => !o)}
+            style={styles.vendorBtn}
+          >
+            <UserCircle size={16} />
+            <span>{activeVendor?.name || "Vendeur"}</span>
+            <ChevronDown size={14} />
+          </button>
+          {vendorMenuOpen && (
+            <>
+              <div style={styles.dropdownOverlay} onClick={() => { setVendorMenuOpen(false); setAddingVendor(false); }} />
+              <div style={styles.vendorDropdown}>
+                <div style={styles.vendorDropdownLabel}>Vendeur actif</div>
+                {vendors.map((v) => (
+                  <button
+                    key={v.id}
+                    onClick={() => { setActiveVendor(v.id); setVendorMenuOpen(false); }}
+                    style={styles.vendorOption}
+                  >
+                    <span>{v.name}</span>
+                    {v.id === activeVendor?.id && <Check size={14} color="#5B7A4C" />}
+                  </button>
+                ))}
+                <div style={styles.vendorDropdownDivider} />
+                {!addingVendor ? (
+                  <button onClick={() => setAddingVendor(true)} style={styles.vendorAddOption}>
+                    <Plus size={14} /> Ajouter un vendeur
+                  </button>
+                ) : (
+                  <div style={styles.vendorAddForm}>
+                    <input
+                      autoFocus
+                      placeholder="Nom du vendeur"
+                      value={newVendorName}
+                      onChange={(e) => setNewVendorName(e.target.value)}
+                      onKeyDown={(e) => e.key === "Enter" && addVendor()}
+                      style={styles.vendorAddInput}
+                    />
+                    <button onClick={addVendor} style={styles.vendorAddConfirm}>
+                      <Check size={14} />
+                    </button>
+                  </div>
+                )}
+              </div>
+            </>
+          )}
+        </div>
+      </div>
+      <nav style={styles.nav}>
+        {items.map(({ id, label, icon: TabIcon }) => (
+          <button
+            key={id}
+            onClick={() => setTab(id)}
+            style={{ ...styles.navBtn, ...(tab === id ? styles.navBtnActive : {}) }}
+          >
+            <TabIcon size={17} strokeWidth={2.2} />
+            <span>{label}</span>
+          </button>
+        ))}
+      </nav>
+    </header>
+  );
+}
+
+// ---------- Toast ----------
+function Toast({ toast }) {
+  return (
+    <div style={{ ...styles.toast, borderColor: toast.kind === "error" ? "#c2533f" : "#3f7d5e" }}>
+      {toast.msg}
+    </div>
+  );
+}
+// =====================================================================
+// VENTE TAB
+// =====================================================================
+function VenteTab({ products, updateProducts, sales, updateSales, clients, updateClients, activeVendor, showToast, onShowReceipt }) {
+  const [query, setQuery] = useState("");
+  const [cart, setCart] = useState([]);
+  const [paymentType, setPaymentType] = useState("comptant"); // comptant | credit
+  const [selectedClientId, setSelectedClientId] = useState("");
+  const [clientPickerOpen, setClientPickerOpen] = useState(false);
+  const [newClientName, setNewClientName] = useState("");
+  const [newClientPhone, setNewClientPhone] = useState("");
+  const [addingClient, setAddingClient] = useState(false);
+
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return products;
+    return products.filter(
+      (p) => p.name.toLowerCase().includes(q) || p.category.toLowerCase().includes(q)
+    );
+  }, [products, query]);
+
+  const addToCart = (product) => {
+    if (product.stock <= 0) {
+      showToast(`${product.name} — stock épuisé`, "error");
+      return;
+    }
+    setCart((c) => {
+      const existing = c.find((i) => i.productId === product.id);
+      if (existing) {
+        if (existing.qty + 1 > product.stock) {
+          showToast(`Stock insuffisant pour ${product.name}`, "error");
+          return c;
+        }
+        return c.map((i) => (i.productId === product.id ? { ...i, qty: i.qty + 1 } : i));
+      }
+      return [...c, { productId: product.id, qty: 1 }];
+    });
+  };
+
+  const changeQty = (productId, delta) => {
+    const product = products.find((p) => p.id === productId);
+    setCart((c) =>
+      c.map((i) => {
+        if (i.productId !== productId) return i;
+        const newQty = i.qty + delta;
+        if (newQty > product.stock) {
+          showToast(`Stock insuffisant pour ${product.name}`, "error");
+          return i;
+        }
+        return { ...i, qty: newQty };
+      }).filter((i) => i.qty > 0)
+    );
+  };
+
+  const removeFromCart = (productId) => setCart((c) => c.filter((i) => i.productId !== productId));
+
+  const cartDetailed = cart.map((i) => {
+    const p = products.find((pp) => pp.id === i.productId);
+    return { ...i, product: p, lineTotal: p ? p.price * i.qty : 0 };
+  });
+
+  const total = cartDetailed.reduce((s, i) => s + i.lineTotal, 0);
+  const itemCount = cartDetailed.reduce((s, i) => s + i.qty, 0);
+  const selectedClient = clients.find((c) => c.id === selectedClientId);
+
+  const addClientInline = () => {
+    const name = newClientName.trim();
+    if (!name) return;
+    const c = { id: uid(), name, phone: newClientPhone.trim(), createdAt: new Date().toISOString() };
+    updateClients([...clients, c]);
+    setSelectedClientId(c.id);
+    setNewClientName("");
+    setNewClientPhone("");
+    setAddingClient(false);
+    setClientPickerOpen(false);
+    showToast(`Client "${name}" ajouté`);
+  };
+
+  const resetSaleForm = () => {
+    setCart([]);
+    setPaymentType("comptant");
+    setSelectedClientId("");
+  };
+
+  const finalizeSale = () => {
+    if (cart.length === 0) return;
+    if (paymentType === "credit" && !selectedClient) {
+      showToast("Choisis un client pour une vente à crédit", "error");
+      return;
+    }
+
+    const sale = {
+      id: uid(),
+      date: new Date().toISOString(),
+      vendorId: activeVendor?.id || null,
+      vendorName: activeVendor?.name || "—",
+      paymentType,
+      clientId: selectedClient?.id || null,
+      clientName: selectedClient?.name || null,
+      items: cartDetailed.map((i) => ({
+        productId: i.productId,
+        name: i.product.name,
+        qty: i.qty,
+        price: i.product.price,
+        cost: i.product.cost,
+        lineTotal: i.lineTotal,
+      })),
+      total,
+    };
+
+    const nextProducts = products.map((p) => {
+      const inCart = cart.find((i) => i.productId === p.id);
+      if (!inCart) return p;
+      return { ...p, stock: Math.max(0, p.stock - inCart.qty) };
+    });
+    updateProducts(nextProducts);
+    updateSales([sale, ...sales]);
+
+    if (paymentType === "credit" && selectedClient) {
+      const nextClients = clients.map((c) =>
+        c.id === selectedClient.id ? { ...c, balance: (c.balance || 0) + total } : c
+      );
+      updateClients(nextClients);
+    }
+
+    showToast(paymentType === "credit" ? `Vente à crédit enregistrée — ${fmt(total)}` : `Vente encaissée — ${fmt(total)}`);
+    onShowReceipt(sale);
+    resetSaleForm();
+  };
+
+  return (
+    <div style={styles.venteGrid} className="vente-grid-mobile">
+      <div>
+        <div style={styles.searchBar}>
+          <Search size={16} color="#8a8378" />
+          <input
+            placeholder="Rechercher un article, une catégorie…"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            style={styles.searchInput}
+          />
+        </div>
+
+        <div style={styles.productGrid}>
+          {filtered.length === 0 && (
+            <div style={styles.emptyState}>Aucun article ne correspond à cette recherche.</div>
+          )}
+          {filtered.map((p) => (
+            <button
+              key={p.id}
+              onClick={() => addToCart(p)}
+              disabled={p.stock <= 0}
+              style={{ ...styles.productCard, ...(p.stock <= 0 ? styles.productCardDisabled : {}) }}
+            >
+              <div style={styles.productCardTop}>
+                <span style={styles.productCardCat}>{p.category}</span>
+                {p.stock <= p.minStock && p.stock > 0 && <AlertTriangle size={13} color="#b8863a" />}
+              </div>
+              <div style={styles.productCardName}>{p.name}</div>
+              <div style={styles.productCardPrice}>{fmt(p.price)}</div>
+              <div style={{
+                ...styles.productCardStock,
+                color: p.stock <= 0 ? "#c2533f" : p.stock <= p.minStock ? "#b8863a" : "#7c8a76",
+              }}>
+                {p.stock <= 0 ? "Épuisé" : `${p.stock} en stock`}
+              </div>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <aside style={styles.cartPanel}>
+        <div style={styles.cartHeader}>
+          <Receipt size={18} />
+          <span>Vente en cours</span>
+          {itemCount > 0 && <span style={styles.cartBadge}>{itemCount}</span>}
+        </div>
+
+        <div style={styles.cartList}>
+          {cartDetailed.length === 0 && (
+            <div style={styles.cartEmpty}>Touchez un article pour l'ajouter à la vente.</div>
+          )}
+          {cartDetailed.map((i) => (
+            <div key={i.productId} style={styles.cartItem}>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={styles.cartItemName}>{i.product?.name || "—"}</div>
+                <div style={styles.cartItemPrice}>{fmt(i.product?.price || 0)} / unité</div>
+              </div>
+              <div style={styles.qtyControl}>
+                <button onClick={() => changeQty(i.productId, -1)} style={styles.qtyBtn}><Minus size={13} /></button>
+                <span style={styles.qtyValue}>{i.qty}</span>
+                <button onClick={() => changeQty(i.productId, 1)} style={styles.qtyBtn}><Plus size={13} /></button>
+              </div>
+              <button onClick={() => removeFromCart(i.productId)} style={styles.cartRemoveBtn}><Trash2 size={14} /></button>
+            </div>
+          ))}
+        </div>
+
+        {cartDetailed.length > 0 && (
+          <div style={styles.saleOptionsBlock}>
+            <div style={styles.paymentToggle}>
+              <button
+                onClick={() => setPaymentType("comptant")}
+                style={{ ...styles.paymentToggleBtn, ...(paymentType === "comptant" ? styles.paymentToggleBtnActive : {}) }}
+              >
+                Comptant
+              </button>
+              <button
+                onClick={() => setPaymentType("credit")}
+                style={{ ...styles.paymentToggleBtn, ...(paymentType === "credit" ? styles.paymentToggleBtnActiveCredit : {}) }}
+              >
+                <CreditCard size={13} /> Crédit
+              </button>
+            </div>
+
+            {paymentType === "credit" && (
+              <div style={{ position: "relative", marginTop: 8 }}>
+                <button onClick={() => setClientPickerOpen((o) => !o)} style={styles.clientSelectBtn}>
+                  <Users size={14} />
+                  <span style={{ flex: 1, textAlign: "left" }}>
+                    {selectedClient ? selectedClient.name : "Choisir un client"}
+                  </span>
+                  <ChevronDown size={14} />
+                </button>
+                {clientPickerOpen && (
+                  <>
+                    <div style={styles.dropdownOverlay} onClick={() => { setClientPickerOpen(false); setAddingClient(false); }} />
+                    <div style={styles.clientDropdown}>
+                      {clients.length === 0 && (
+                        <div style={styles.vendorDropdownLabel}>Aucun client enregistré</div>
+                      )}
+                      {clients.map((c) => (
+                        <button
+                          key={c.id}
+                          onClick={() => { setSelectedClientId(c.id); setClientPickerOpen(false); }}
+                          style={styles.vendorOption}
+                        >
+                          <span>{c.name}</span>
+                          {(c.balance || 0) > 0 && (
+                            <span style={styles.clientBalanceTag}>{fmt(c.balance)}</span>
+                          )}
+                        </button>
+                      ))}
+                      <div style={styles.vendorDropdownDivider} />
+                      {!addingClient ? (
+                        <button onClick={() => setAddingClient(true)} style={styles.vendorAddOption}>
+                          <Plus size={14} /> Nouveau client
+                        </button>
+                      ) : (
+                        <div style={{ padding: "6px 4px", display: "flex", flexDirection: "column", gap: 6 }}>
+                          <input
+                            autoFocus placeholder="Nom du client"
+                            value={newClientName} onChange={(e) => setNewClientName(e.target.value)}
+                            style={styles.vendorAddInput}
+                          />
+                          <input
+                            placeholder="Téléphone (optionnel)"
+                            value={newClientPhone} onChange={(e) => setNewClientPhone(e.target.value)}
+                            style={styles.vendorAddInput}
+                          />
+                          <button onClick={addClientInline} style={styles.clientAddConfirmBtn}>Ajouter</button>
+                        </div>
+                      )}
+                    </div>
+                  </>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+
+        <div style={styles.cartFooter}>
+          <div style={styles.cartTotalRow}>
+            <span>Total</span>
+            <span style={styles.cartTotalValue}>{fmt(total)}</span>
+          </div>
+          <button
+            onClick={finalizeSale}
+            disabled={cart.length === 0}
+            style={{
+              ...styles.confirmBtn,
+              ...(paymentType === "credit" ? styles.confirmBtnCredit : {}),
+              ...(cart.length === 0 ? styles.confirmBtnDisabled : {}),
+            }}
+          >
+            {paymentType === "credit" ? "Enregistrer la vente à crédit" : "Encaisser la vente"}
+          </button>
+        </div>
+      </aside>
+    </div>
+  );
+}
+// =====================================================================
+// STOCK TAB
+// =====================================================================
+function StockTab({ products, updateProducts, showToast }) {
+  const [editing, setEditing] = useState(null);
+  const [query, setQuery] = useState("");
+
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return products;
+    return products.filter((p) => p.name.toLowerCase().includes(q));
+  }, [products, query]);
+
+  const lowStock = products.filter((p) => p.stock <= p.minStock);
+
+  const saveProduct = (form) => {
+    if (!form.name.trim()) {
+      showToast("Le nom de l'article est requis", "error");
+      return;
+    }
+    let next;
+    if (form.id) {
+      next = products.map((p) => (p.id === form.id ? { ...form } : p));
+      showToast("Article mis à jour");
+    } else {
+      next = [...products, { ...form, id: uid() }];
+      showToast("Article ajouté au stock");
+    }
+    updateProducts(next);
+    setEditing(null);
+  };
+
+  const deleteProduct = (id) => {
+    updateProducts(products.filter((p) => p.id !== id));
+    setEditing(null);
+    showToast("Article supprimé");
+  };
+
+  return (
+    <div>
+      {lowStock.length > 0 && (
+        <div style={styles.alertBanner}>
+          <AlertTriangle size={16} color="#b8863a" />
+          <span>
+            {lowStock.length} article{lowStock.length > 1 ? "s" : ""} en stock faible — {lowStock.map((p) => p.name).join(", ")}
+          </span>
+        </div>
+      )}
+
+      <div style={styles.stockToolbar}>
+        <div style={styles.searchBar}>
+          <Search size={16} color="#8a8378" />
+          <input placeholder="Rechercher un article…" value={query} onChange={(e) => setQuery(e.target.value)} style={styles.searchInput} />
+        </div>
+        <ExportMenu products={products} kind="products" />
+        <button
+          onClick={() => setEditing({ id: null, name: "", category: "", price: 0, cost: 0, stock: 0, minStock: 3 })}
+          style={styles.addBtn}
+        >
+          <Plus size={16} /> Nouvel article
+        </button>
+      </div>
+
+      <div style={styles.stockTableWrap}>
+        <table style={styles.table}>
+          <thead>
+            <tr>
+              <th style={styles.th}>Article</th>
+              <th style={styles.th}>Catégorie</th>
+              <th style={styles.th}>Prix vente</th>
+              <th style={styles.th}>Coût</th>
+              <th style={styles.th}>Stock</th>
+              <th style={styles.th}></th>
+            </tr>
+          </thead>
+          <tbody>
+            {filtered.map((p) => (
+              <tr key={p.id} style={styles.tr}>
+                <td style={styles.tdName}>{p.name}</td>
+                <td style={styles.td}>{p.category || "—"}</td>
+                <td style={styles.td}>{fmt(p.price)}</td>
+                <td style={styles.td}>{fmt(p.cost)}</td>
+                <td style={styles.td}>
+                  <span style={{
+                    ...styles.stockPill,
+                    background: p.stock <= p.minStock ? "#fbeee0" : "#eef2e9",
+                    color: p.stock <= p.minStock ? "#b8863a" : "#5b7a4c",
+                  }}>{p.stock}</span>
+                </td>
+                <td style={styles.td}>
+                  <button onClick={() => setEditing(p)} style={styles.editBtn}><Edit3 size={14} /></button>
+                </td>
+              </tr>
+            ))}
+            {filtered.length === 0 && (
+              <tr><td colSpan={6} style={styles.emptyTableCell}>Aucun article trouvé.</td></tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+
+      {editing && (
+        <ProductModal
+          product={editing}
+          onClose={() => setEditing(null)}
+          onSave={saveProduct}
+          onDelete={editing.id ? () => deleteProduct(editing.id) : null}
+        />
+      )}
+    </div>
+  );
+}
+
+function ProductModal({ product, onClose, onSave, onDelete }) {
+  const [form, setForm] = useState(product);
+  const set = (key) => (e) => {
+    const val = e.target.value;
+    setForm((f) => ({
+      ...f,
+      [key]: ["price", "cost", "stock", "minStock"].includes(key)
+        ? Number(val.replace(/[^0-9]/g, "")) || 0 : val,
+    }));
+  };
+  return (
+    <div style={styles.modalOverlay} onClick={onClose}>
+      <div style={styles.modal} onClick={(e) => e.stopPropagation()}>
+        <div style={styles.modalHeader}>
+          <span>{form.id ? "Modifier l'article" : "Nouvel article"}</span>
+          <button onClick={onClose} style={styles.modalCloseBtn}><X size={18} /></button>
+        </div>
+        <div style={styles.modalBody}>
+          <Field label="Nom de l'article">
+            <input style={styles.input} value={form.name} onChange={set("name")} placeholder="Ex: Chemise homme" />
+          </Field>
+          <Field label="Catégorie">
+            <input style={styles.input} value={form.category} onChange={set("category")} placeholder="Ex: Vêtements" />
+          </Field>
+          <div style={styles.fieldRow}>
+            <Field label="Prix de vente (GNF)"><input style={styles.input} value={form.price} onChange={set("price")} inputMode="numeric" /></Field>
+            <Field label="Coût d'achat (GNF)"><input style={styles.input} value={form.cost} onChange={set("cost")} inputMode="numeric" /></Field>
+          </div>
+          <div style={styles.fieldRow}>
+            <Field label="Stock actuel"><input style={styles.input} value={form.stock} onChange={set("stock")} inputMode="numeric" /></Field>
+            <Field label="Seuil d'alerte"><input style={styles.input} value={form.minStock} onChange={set("minStock")} inputMode="numeric" /></Field>
+          </div>
+        </div>
+        <div style={styles.modalFooter}>
+          {onDelete && <button onClick={onDelete} style={styles.deleteBtn}><Trash2 size={14} /> Supprimer</button>}
+          <div style={{ flex: 1 }} />
+          <button onClick={onClose} style={styles.cancelBtn}>Annuler</button>
+          <button onClick={() => onSave(form)} style={styles.saveBtn}>Enregistrer</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function Field({ label, children }) {
+  return (
+    <label style={styles.fieldLabel}>
+      <span>{label}</span>
+      {children}
+    </label>
+  );
+}
+// =====================================================================
+// CLIENTS TAB
+// =====================================================================
+function ClientsTab({ clients, updateClients, sales, updateSales, showToast }) {
+  const [query, setQuery] = useState("");
+  const [editing, setEditing] = useState(null);
+  const [payingClient, setPayingClient] = useState(null);
+  const [detailClient, setDetailClient] = useState(null);
+
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return clients;
+    return clients.filter((c) => c.name.toLowerCase().includes(q));
+  }, [clients, query]);
+
+  const totalDebt = clients.reduce((s, c) => s + (c.balance || 0), 0);
+  const debtors = clients.filter((c) => (c.balance || 0) > 0);
+
+  const saveClient = (form) => {
+    if (!form.name.trim()) {
+      showToast("Le nom du client est requis", "error");
+      return;
+    }
+    let next;
+    if (form.id) {
+      next = clients.map((c) => (c.id === form.id ? { ...c, name: form.name, phone: form.phone } : c));
+      showToast("Client mis à jour");
+    } else {
+      next = [...clients, { id: uid(), name: form.name, phone: form.phone, balance: 0, createdAt: new Date().toISOString() }];
+      showToast("Client ajouté");
+    }
+    updateClients(next);
+    setEditing(null);
+  };
+
+  const deleteClient = (id) => {
+    updateClients(clients.filter((c) => c.id !== id));
+    setEditing(null);
+    showToast("Client supprimé");
+  };
+
+  const recordPayment = (clientId, amount) => {
+    if (amount <= 0) return;
+    const next = clients.map((c) =>
+      c.id === clientId ? { ...c, balance: Math.max(0, (c.balance || 0) - amount) } : c
+    );
+    updateClients(next);
+    setPayingClient(null);
+    showToast(`Paiement de ${fmt(amount)} enregistré`);
+  };
+
+  const clientSales = (clientId) => sales.filter((s) => s.clientId === clientId);
+
+  return (
+    <div>
+      <div style={styles.statGrid}>
+        <StatCard icon={Users} label="Clients enregistrés" value={clients.length} accent="#8a6f4f" />
+        <StatCard icon={CreditCard} label="Total à recevoir" value={fmt(totalDebt)} accent="#b8863a" />
+        <StatCard icon={AlertTriangle} label="Clients endettés" value={debtors.length} accent="#c2533f" />
+      </div>
+
+      <div style={styles.stockToolbar}>
+        <div style={styles.searchBar}>
+          <Search size={16} color="#8a8378" />
+          <input placeholder="Rechercher un client…" value={query} onChange={(e) => setQuery(e.target.value)} style={styles.searchInput} />
+        </div>
+        <ExportMenu clients={clients} kind="clients" />
+        <button onClick={() => setEditing({ id: null, name: "", phone: "" })} style={styles.addBtn}>
+          <Plus size={16} /> Nouveau client
+        </button>
+      </div>
+
+      <div style={styles.stockTableWrap}>
+        <table style={styles.table}>
+          <thead>
+            <tr>
+              <th style={styles.th}>Client</th>
+              <th style={styles.th}>Téléphone</th>
+              <th style={styles.th}>Solde dû</th>
+              <th style={styles.th}></th>
+            </tr>
+          </thead>
+          <tbody>
+            {filtered.map((c) => (
+              <tr key={c.id} style={styles.tr}>
+                <td style={styles.tdName}>
+                  <button onClick={() => setDetailClient(c)} style={styles.clientNameLink}>{c.name}</button>
+                </td>
+                <td style={styles.td}>{c.phone || "—"}</td>
+                <td style={styles.td}>
+                  {(c.balance || 0) > 0 ? (
+                    <span style={{ ...styles.stockPill, background: "#fbeee0", color: "#b8863a" }}>{fmt(c.balance)}</span>
+                  ) : (
+                    <span style={{ ...styles.stockPill, background: "#eef2e9", color: "#5b7a4c" }}>À jour</span>
+                  )}
+                </td>
+                <td style={styles.td}>
+                  <div style={{ display: "flex", gap: 6 }}>
+                    {(c.balance || 0) > 0 && (
+                      <button onClick={() => setPayingClient(c)} style={styles.payBtn}>Encaisser</button>
+                    )}
+                    <button onClick={() => setEditing(c)} style={styles.editBtn}><Edit3 size={14} /></button>
+                  </div>
+                </td>
+              </tr>
+            ))}
+            {filtered.length === 0 && (
+              <tr><td colSpan={4} style={styles.emptyTableCell}>Aucun client trouvé.</td></tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+
+      {editing && (
+        <ClientModal
+          client={editing}
+          onClose={() => setEditing(null)}
+          onSave={saveClient}
+          onDelete={editing.id ? () => deleteClient(editing.id) : null}
+        />
+      )}
+
+      {payingClient && (
+        <PaymentModal client={payingClient} onClose={() => setPayingClient(null)} onConfirm={recordPayment} />
+      )}
+
+      {detailClient && (
+        <ClientDetailModal
+          client={detailClient}
+          sales={clientSales(detailClient.id)}
+          onClose={() => setDetailClient(null)}
+        />
+      )}
+    </div>
+  );
+}
+
+function ClientModal({ client, onClose, onSave, onDelete }) {
+  const [form, setForm] = useState(client);
+  return (
+    <div style={styles.modalOverlay} onClick={onClose}>
+      <div style={styles.modal} onClick={(e) => e.stopPropagation()}>
+        <div style={styles.modalHeader}>
+          <span>{form.id ? "Modifier le client" : "Nouveau client"}</span>
+          <button onClick={onClose} style={styles.modalCloseBtn}><X size={18} /></button>
+        </div>
+        <div style={styles.modalBody}>
+          <Field label="Nom du client">
+            <input style={styles.input} value={form.name} onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))} placeholder="Ex: Mamadou Diallo" />
+          </Field>
+          <Field label="Téléphone (optionnel)">
+            <input style={styles.input} value={form.phone || ""} onChange={(e) => setForm((f) => ({ ...f, phone: e.target.value }))} placeholder="Ex: 622 00 00 00" />
+          </Field>
+        </div>
+        <div style={styles.modalFooter}>
+          {onDelete && <button onClick={onDelete} style={styles.deleteBtn}><Trash2 size={14} /> Supprimer</button>}
+          <div style={{ flex: 1 }} />
+          <button onClick={onClose} style={styles.cancelBtn}>Annuler</button>
+          <button onClick={() => onSave(form)} style={styles.saveBtn}>Enregistrer</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function PaymentModal({ client, onClose, onConfirm }) {
+  const [amount, setAmount] = useState(String(client.balance || 0));
+  const numAmount = Number(amount.replace(/[^0-9]/g, "")) || 0;
+  return (
+    <div style={styles.modalOverlay} onClick={onClose}>
+      <div style={styles.modal} onClick={(e) => e.stopPropagation()}>
+        <div style={styles.modalHeader}>
+          <span>Encaisser un paiement</span>
+          <button onClick={onClose} style={styles.modalCloseBtn}><X size={18} /></button>
+        </div>
+        <div style={styles.modalBody}>
+          <div style={styles.paymentClientInfo}>
+            <div style={{ fontWeight: 700 }}>{client.name}</div>
+            <div style={{ fontSize: 12.5, color: "#9C9485" }}>Solde dû : {fmt(client.balance || 0)}</div>
+          </div>
+          <Field label="Montant reçu (GNF)">
+            <input
+              style={styles.input} value={amount}
+              onChange={(e) => setAmount(e.target.value)}
+              inputMode="numeric" autoFocus
+            />
+          </Field>
+        </div>
+        <div style={styles.modalFooter}>
+          <div style={{ flex: 1 }} />
+          <button onClick={onClose} style={styles.cancelBtn}>Annuler</button>
+          <button onClick={() => onConfirm(client.id, numAmount)} style={styles.saveBtn} disabled={numAmount <= 0}>
+            Confirmer le paiement
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ClientDetailModal({ client, sales, onClose }) {
+  const totalSpent = sales.reduce((s, sale) => s + sale.total, 0);
+  return (
+    <div style={styles.modalOverlay} onClick={onClose}>
+      <div style={styles.modal} onClick={(e) => e.stopPropagation()}>
+        <div style={styles.modalHeader}>
+          <span>{client.name}</span>
+          <button onClick={onClose} style={styles.modalCloseBtn}><X size={18} /></button>
+        </div>
+        <div style={styles.modalBody}>
+          <div style={styles.clientDetailStats}>
+            <div>
+              <div style={styles.clientDetailLabel}>Solde dû</div>
+              <div style={{ ...styles.clientDetailValue, color: (client.balance || 0) > 0 ? "#b8863a" : "#5b7a4c" }}>
+                {fmt(client.balance || 0)}
+              </div>
+            </div>
+            <div>
+              <div style={styles.clientDetailLabel}>Total acheté</div>
+              <div style={styles.clientDetailValue}>{fmt(totalSpent)}</div>
+            </div>
+          </div>
+          <div style={{ fontSize: 12.5, fontWeight: 700, color: "#6B6356", marginTop: 6, marginBottom: 4 }}>
+            Historique des achats
+          </div>
+          <div style={{ maxHeight: 240, overflowY: "auto" }}>
+            {sales.length === 0 && <div style={styles.emptyState}>Aucun achat enregistré.</div>}
+            {sales.map((s) => (
+              <div key={s.id} style={styles.clientSaleRow}>
+                <div>
+                  <div style={{ fontSize: 13, fontWeight: 600 }}>{fmtDateTime(s.date)}</div>
+                  <div style={{ fontSize: 11.5, color: "#9C9485" }}>
+                    {s.paymentType === "credit" ? "À crédit" : "Comptant"} · {s.items.length} article(s)
+                  </div>
+                </div>
+                <div style={{ fontWeight: 700, fontSize: 13.5 }}>{fmt(s.total)}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+        <div style={styles.modalFooter}>
+          <div style={{ flex: 1 }} />
+          <button onClick={onClose} style={styles.cancelBtn}>Fermer</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+// =====================================================================
+// RECEIPT (printable)
+// =====================================================================
+function ReceiptModal({ sale, onClose }) {
+  const printReceipt = () => {
+    const win = window.open("", "_blank", "width=380,height=600");
+    if (!win) return;
+    const itemsHtml = sale.items.map(it => `
+      <tr>
+        <td style="padding:4px 0;">${escapeHtml(it.name)}</td>
+        <td style="padding:4px 0;text-align:center;">${it.qty}</td>
+        <td style="padding:4px 0;text-align:right;">${fmt(it.lineTotal)}</td>
+      </tr>`).join("");
+    win.document.write(`
+      <html><head><title>Reçu</title>
+      <style>
+        body { font-family: 'Courier New', monospace; padding: 16px; max-width: 320px; margin: 0 auto; color: #1a1a1a; }
+        h2 { text-align: center; margin: 0 0 2px; font-size: 16px; }
+        .sub { text-align: center; font-size: 11px; color: #555; margin-bottom: 12px; }
+        table { width: 100%; border-collapse: collapse; font-size: 12px; }
+        .divider { border-top: 1px dashed #999; margin: 8px 0; }
+        .total-row { display:flex; justify-content:space-between; font-weight:bold; font-size:14px; margin-top:6px; }
+        .meta { font-size: 11px; color: #555; margin: 2px 0; }
+        @media print { body { padding: 0; } }
+      </style>
+      </head><body>
+        <h2>Ma Boutique</h2>
+        <div class="sub">Reçu de vente</div>
+        <div class="meta">Date : ${fmtDateTime(sale.date)}</div>
+        <div class="meta">Vendeur : ${escapeHtml(sale.vendorName || "—")}</div>
+        ${sale.clientName ? `<div class="meta">Client : ${escapeHtml(sale.clientName)}</div>` : ""}
+        <div class="meta">Paiement : ${sale.paymentType === "credit" ? "À crédit" : "Comptant"}</div>
+        <div class="divider"></div>
+        <table>
+          <thead><tr style="font-weight:bold;"><td>Article</td><td style="text-align:center;">Qté</td><td style="text-align:right;">Total</td></tr></thead>
+          <tbody>${itemsHtml}</tbody>
+        </table>
+        <div class="divider"></div>
+        <div class="total-row"><span>TOTAL</span><span>${fmt(sale.total)}</span></div>
+        <div class="divider"></div>
+        <div style="text-align:center; font-size:11px; color:#777; margin-top:10px;">Merci de votre achat</div>
+      </body></html>
+    `);
+    win.document.close();
+    win.focus();
+    win.print();
+  };
+
+  return (
+    <div style={styles.modalOverlay} onClick={onClose}>
+      <div style={styles.modal} onClick={(e) => e.stopPropagation()}>
+        <div style={styles.modalHeader}>
+          <span>Vente enregistrée</span>
+          <button onClick={onClose} style={styles.modalCloseBtn}><X size={18} /></button>
+        </div>
+        <div style={styles.modalBody}>
+          <div style={styles.receiptPreview}>
+            <div style={{ textAlign: "center", fontWeight: 800, fontSize: 15 }}>Ma Boutique</div>
+            <div style={{ textAlign: "center", fontSize: 11, color: "#9C9485", marginBottom: 10 }}>Reçu de vente</div>
+            <div style={styles.receiptMeta}>{fmtDateTime(sale.date)}</div>
+            <div style={styles.receiptMeta}>Vendeur : {sale.vendorName}</div>
+            {sale.clientName && <div style={styles.receiptMeta}>Client : {sale.clientName}</div>}
+            <div style={styles.receiptDivider} />
+            {sale.items.map((it, idx) => (
+              <div key={idx} style={styles.receiptItemRow}>
+                <span style={{ flex: 1 }}>{it.name} × {it.qty}</span>
+                <span>{fmt(it.lineTotal)}</span>
+              </div>
+            ))}
+            <div style={styles.receiptDivider} />
+            <div style={styles.receiptTotalRow}>
+              <span>TOTAL</span>
+              <span>{fmt(sale.total)}</span>
+            </div>
+          </div>
+        </div>
+        <div style={styles.modalFooter}>
+          <div style={{ flex: 1 }} />
+          <button onClick={onClose} style={styles.cancelBtn}>Fermer</button>
+          <button onClick={printReceipt} style={styles.saveBtn}><Printer size={14} style={{ marginRight: 5 }} /> Imprimer</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function escapeHtml(str) {
+  return String(str).replace(/[&<>"']/g, (c) => ({
+    "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;",
+  }[c]));
+}
+
+// =====================================================================
+// EXPORT (CSV / Excel)
+// =====================================================================
+function ExportMenu({ products, sales, clients, kind }) {
+  const [open, setOpen] = useState(false);
+
+  const downloadCsv = (filename, rows) => {
+    const csv = rows.map((row) =>
+      row.map((cell) => {
+        const s = String(cell ?? "");
+        return /[",\n;]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+      }).join(";")
+    ).join("\r\n");
+    const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
+    triggerDownload(blob, filename);
+  };
+
+  const downloadXlsx = (filename, sheetName, rows) => {
+    if (typeof XLSX === "undefined") {
+      alert("Export Excel indisponible hors-ligne. Utilisez l'export CSV.");
+      return;
+    }
+    const ws = XLSX.utils.aoa_to_sheet(rows);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, sheetName);
+    XLSX.writeFile(wb, filename);
+  };
+
+  const triggerDownload = (blob, filename) => {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = filename;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
+  const exportProducts = (format) => {
+    const rows = [
+      ["Article", "Catégorie", "Prix de vente (GNF)", "Coût (GNF)", "Stock", "Seuil d'alerte"],
+      ...products.map((p) => [p.name, p.category, p.price, p.cost, p.stock, p.minStock]),
+    ];
+    if (format === "xlsx") downloadXlsx("stock.xlsx", "Stock", rows);
+    else downloadCsv("stock.csv", rows);
+    setOpen(false);
+  };
+
+  const exportSales = (format) => {
+    const rows = [["Date", "Vendeur", "Client", "Paiement", "Article", "Quantité", "Prix unitaire (GNF)", "Total ligne (GNF)", "Total vente (GNF)"]];
+    sales.forEach((s) => {
+      s.items.forEach((it) => {
+        rows.push([fmtDateTime(s.date), s.vendorName || "—", s.clientName || "—", s.paymentType === "credit" ? "Crédit" : "Comptant", it.name, it.qty, it.price, it.lineTotal, s.total]);
+      });
+    });
+    if (format === "xlsx") downloadXlsx("ventes.xlsx", "Ventes", rows);
+    else downloadCsv("ventes.csv", rows);
+    setOpen(false);
+  };
+
+  const exportClients = (format) => {
+    const rows = [
+      ["Client", "Téléphone", "Solde dû (GNF)"],
+      ...clients.map((c) => [c.name, c.phone || "", c.balance || 0]),
+    ];
+    if (format === "xlsx") downloadXlsx("clients.xlsx", "Clients", rows);
+    else downloadCsv("clients.csv", rows);
+    setOpen(false);
+  };
+
+  const handlers = {
+    products: exportProducts,
+    sales: exportSales,
+    clients: exportClients,
+  };
+  const handler = handlers[kind];
+
+  return (
+    <div style={{ position: "relative" }}>
+      <button onClick={() => setOpen((o) => !o)} style={styles.exportBtn}>
+        <Download size={15} /> Exporter
+      </button>
+      {open && (
+        <>
+          <div style={styles.dropdownOverlay} onClick={() => setOpen(false)} />
+          <div style={styles.exportDropdown}>
+            <button onClick={() => handler("xlsx")} style={styles.vendorOption}>Excel (.xlsx)</button>
+            <button onClick={() => handler("csv")} style={styles.vendorOption}>CSV (.csv)</button>
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+// =====================================================================
+// RAPPORTS TAB
+// =====================================================================
+function RapportsTab({ products, sales, clients }) {
+  const [range, setRange] = useState("7");
+
+  const cutoff = useMemo(() => {
+    const d = new Date();
+    d.setDate(d.getDate() - Number(range));
+    return d;
+  }, [range]);
+
+  const filteredSales = useMemo(() => sales.filter((s) => new Date(s.date) >= cutoff), [sales, cutoff]);
+
+  const revenue = filteredSales.reduce((s, sale) => s + sale.total, 0);
+  const profit = filteredSales.reduce(
+    (s, sale) => s + sale.items.reduce((ss, it) => ss + (it.price - it.cost) * it.qty, 0), 0
+  );
+  const txCount = filteredSales.length;
+  const itemsSold = filteredSales.reduce((s, sale) => s + sale.items.reduce((ss, it) => ss + it.qty, 0), 0);
+  const creditSales = filteredSales.filter((s) => s.paymentType === "credit");
+  const creditTotal = creditSales.reduce((s, sale) => s + sale.total, 0);
+  const totalDebt = clients.reduce((s, c) => s + (c.balance || 0), 0);
+
+  const productTotals = {};
+  filteredSales.forEach((sale) => {
+    sale.items.forEach((it) => {
+      if (!productTotals[it.name]) productTotals[it.name] = { qty: 0, revenue: 0 };
+      productTotals[it.name].qty += it.qty;
+      productTotals[it.name].revenue += it.lineTotal;
+    });
+  });
+  const topProducts = Object.entries(productTotals).sort((a, b) => b[1].revenue - a[1].revenue).slice(0, 6);
+
+  const vendorTotals = {};
+  filteredSales.forEach((sale) => {
+    const name = sale.vendorName || "—";
+    if (!vendorTotals[name]) vendorTotals[name] = { qty: 0, revenue: 0 };
+    vendorTotals[name].revenue += sale.total;
+    vendorTotals[name].qty += 1;
+  });
+  const vendorRanking = Object.entries(vendorTotals).sort((a, b) => b[1].revenue - a[1].revenue);
+
+  const lowStock = products.filter((p) => p.stock <= p.minStock);
+
+  const days = Number(range) <= 14 ? Number(range) : 14;
+  const dailyData = useMemo(() => {
+    const arr = [];
+    for (let i = days - 1; i >= 0; i--) {
+      const d = new Date();
+      d.setDate(d.getDate() - i);
+      const key = d.toISOString().slice(0, 10);
+      const dayTotal = sales.filter((s) => s.date.slice(0, 10) === key).reduce((sum, s) => sum + s.total, 0);
+      arr.push({ label: d.toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit" }), value: dayTotal });
+    }
+    return arr;
+  }, [sales, days]);
+  const maxDaily = Math.max(...dailyData.map((d) => d.value), 1);
+
+  return (
+    <div>
+      <div style={styles.rangeBarRow}>
+        <div style={styles.rangeBar}>
+          {[{ id: "1", label: "Aujourd'hui" }, { id: "7", label: "7 jours" }, { id: "30", label: "30 jours" }, { id: "9999", label: "Tout" }].map((r) => (
+            <button key={r.id} onClick={() => setRange(r.id)} style={{ ...styles.rangeBtn, ...(range === r.id ? styles.rangeBtnActive : {}) }}>
+              {r.label}
+            </button>
+          ))}
+        </div>
+        <ExportMenu sales={filteredSales} kind="sales" />
+      </div>
+
+      <div style={styles.statGrid}>
+        <StatCard icon={DollarSign} label="Chiffre d'affaires" value={fmt(revenue)} accent="#5b7a4c" />
+        <StatCard icon={TrendingUp} label="Bénéfice estimé" value={fmt(profit)} accent="#3f7d5e" />
+        <StatCard icon={Receipt} label="Ventes" value={txCount} accent="#8a6f4f" />
+        <StatCard icon={Package} label="Articles vendus" value={itemsSold} accent="#a06b3f" />
+        <StatCard icon={CreditCard} label="Ventes à crédit" value={fmt(creditTotal)} accent="#b8863a" />
+        <StatCard icon={Users} label="Total à recevoir" value={fmt(totalDebt)} accent="#c2533f" />
+      </div>
+
+      <div style={styles.reportColumns} className="report-columns-mobile">
+        <div style={styles.reportCard}>
+          <div style={styles.reportCardTitle}>Évolution des ventes</div>
+          <div style={styles.barChart}>
+            {dailyData.map((d, idx) => (
+              <div key={idx} style={styles.barCol}>
+                <div style={styles.barTrack}>
+                  <div style={{ ...styles.barFill, height: `${Math.max(4, (d.value / maxDaily) * 100)}%` }} title={fmt(d.value)} />
+                </div>
+                <span style={styles.barLabel}>{d.label}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div style={styles.reportCard}>
+          <div style={styles.reportCardTitle}>Articles les plus vendus</div>
+          {topProducts.length === 0 && <div style={styles.emptyState}>Aucune vente sur cette période.</div>}
+          {topProducts.map(([name, data], idx) => (
+            <div key={name} style={styles.topRow}>
+              <span style={styles.topRank}>{idx + 1}</span>
+              <div style={{ flex: 1 }}>
+                <div style={styles.topName}>{name}</div>
+                <div style={styles.topMeta}>{data.qty} vendu(s)</div>
+              </div>
+              <div style={styles.topRevenue}>{fmt(data.revenue)}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {vendorRanking.length > 0 && (
+        <div style={styles.reportCard}>
+          <div style={styles.reportCardTitle}>Ventes par vendeur</div>
+          {vendorRanking.map(([name, data], idx) => (
+            <div key={name} style={styles.topRow}>
+              <span style={styles.topRank}>{idx + 1}</span>
+              <div style={{ flex: 1 }}>
+                <div style={styles.topName}>{name}</div>
+                <div style={styles.topMeta}>{data.qty} vente(s)</div>
+              </div>
+              <div style={styles.topRevenue}>{fmt(data.revenue)}</div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      <div style={styles.reportCard}>
+        <div style={styles.reportCardTitle}>État du stock</div>
+        {lowStock.length === 0 ? (
+          <div style={styles.emptyState}>Tous les articles ont un stock suffisant.</div>
+        ) : (
+          lowStock.map((p) => (
+            <div key={p.id} style={styles.topRow}>
+              <AlertTriangle size={15} color="#b8863a" />
+              <div style={{ flex: 1, marginLeft: 4 }}>
+                <div style={styles.topName}>{p.name}</div>
+                <div style={styles.topMeta}>Seuil d'alerte : {p.minStock}</div>
+              </div>
+              <span style={{ ...styles.stockPill, background: "#fbeee0", color: "#b8863a" }}>{p.stock} restant{p.stock > 1 ? "s" : ""}</span>
+            </div>
+          ))
+        )}
+      </div>
+    </div>
+  );
+}
+
+function StatCard({ icon: StatIcon, label, value, accent }) {
+  return (
+    <div style={styles.statCard}>
+      <div style={{ ...styles.statIcon, background: accent + "1a", color: accent }}>
+        <StatIcon size={18} />
+      </div>
+      <div>
+        <div style={styles.statValue}>{value}</div>
+        <div style={styles.statLabel}>{label}</div>
+      </div>
+    </div>
+  );
+}
+// =====================================================================
+// STYLES
+// =====================================================================
+const colors = {
+  bg: "#FBF8F2",
+  surface: "#FFFFFF",
+  border: "#E8E1D4",
+  ink: "#2A2620",
+  inkSoft: "#6B6356",
+  inkFaint: "#9C9485",
+  accent: "#A65E3A",
+  accentDeep: "#7C4528",
+  green: "#5B7A4C",
+};
+
+const globalCss = `
+  * { box-sizing: border-box; }
+  body { margin: 0; }
+  ::placeholder { color: ${colors.inkFaint}; }
+  button { font-family: inherit; cursor: pointer; }
+  input { font-family: inherit; }
+  table { border-collapse: collapse; width: 100%; }
+  @media (max-width: 860px) {
+    .vente-grid-mobile { grid-template-columns: 1fr !important; }
+    .report-columns-mobile { grid-template-columns: 1fr !important; }
+  }
+`;
+
+const styles = {
+  app: { fontFamily: "'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif", background: colors.bg, minHeight: "100vh", color: colors.ink },
+  loadingScreen: { minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: colors.bg, fontFamily: "'Segoe UI', sans-serif" },
+  loadingDot: { width: 10, height: 10, borderRadius: "50%", background: colors.accent },
+
+  header: { background: colors.surface, borderBottom: `1px solid ${colors.border}`, padding: "14px 20px", position: "sticky", top: 0, zIndex: 10 },
+  brandRow: { display: "flex", alignItems: "center", gap: 10, marginBottom: 12 },
+  brandMark: { width: 36, height: 36, borderRadius: 9, background: colors.accent, color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700, fontSize: 16, flexShrink: 0 },
+  brandTitle: { fontWeight: 700, fontSize: 16, letterSpacing: "-0.01em" },
+  brandSub: { fontSize: 12, color: colors.inkFaint },
+  nav: { display: "flex", gap: 6, overflowX: "auto" },
+  navBtn: { display: "flex", alignItems: "center", gap: 6, border: "none", background: "transparent", color: colors.inkSoft, padding: "8px 14px", borderRadius: 8, fontSize: 13.5, fontWeight: 600, whiteSpace: "nowrap" },
+  navBtnActive: { background: "#F3ECE0", color: colors.accentDeep },
+
+  vendorBtn: { display: "flex", alignItems: "center", gap: 6, border: `1px solid ${colors.border}`, background: colors.surface, color: colors.ink, padding: "7px 11px", borderRadius: 9, fontSize: 12.5, fontWeight: 600, whiteSpace: "nowrap" },
+  dropdownOverlay: { position: "fixed", inset: 0, zIndex: 19 },
+  vendorDropdown: { position: "absolute", right: 0, top: "calc(100% + 6px)", background: colors.surface, border: `1px solid ${colors.border}`, borderRadius: 10, boxShadow: "0 10px 30px rgba(0,0,0,0.12)", minWidth: 220, padding: 6, zIndex: 20 },
+  vendorDropdownLabel: { fontSize: 10.5, textTransform: "uppercase", letterSpacing: "0.04em", color: colors.inkFaint, fontWeight: 700, padding: "6px 8px 4px" },
+  vendorOption: { display: "flex", alignItems: "center", justifyContent: "space-between", width: "100%", border: "none", background: "transparent", padding: "8px 8px", borderRadius: 7, fontSize: 13.5, color: colors.ink, fontWeight: 500, textAlign: "left" },
+  vendorDropdownDivider: { height: 1, background: colors.border, margin: "4px 0" },
+  vendorAddOption: { display: "flex", alignItems: "center", gap: 6, width: "100%", border: "none", background: "transparent", padding: "8px 8px", borderRadius: 7, fontSize: 13, color: colors.accentDeep, fontWeight: 600 },
+  vendorAddForm: { display: "flex", gap: 6, padding: "4px" },
+  vendorAddInput: { flex: 1, border: `1px solid ${colors.border}`, borderRadius: 7, padding: "7px 9px", fontSize: 13, outline: "none" },
+  vendorAddConfirm: { border: "none", background: colors.green, color: "#fff", borderRadius: 7, width: 30, display: "flex", alignItems: "center", justifyContent: "center" },
+
+  main: { maxWidth: 1100, margin: "0 auto", padding: "20px 16px 60px" },
+  toast: { position: "fixed", bottom: 24, left: "50%", transform: "translateX(-50%)", background: colors.ink, color: "#fff", padding: "11px 18px", borderRadius: 10, fontSize: 13.5, fontWeight: 500, borderLeft: "3px solid", boxShadow: "0 8px 24px rgba(0,0,0,0.18)", zIndex: 100, maxWidth: "90vw" },
+
+  venteGrid: { display: "grid", gridTemplateColumns: "1fr 320px", gap: 20, alignItems: "start" },
+  searchBar: { display: "flex", alignItems: "center", gap: 8, background: colors.surface, border: `1px solid ${colors.border}`, borderRadius: 10, padding: "10px 12px", marginBottom: 14 },
+  searchInput: { border: "none", outline: "none", background: "transparent", fontSize: 14, flex: 1, color: colors.ink },
+  productGrid: { display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(150px, 1fr))", gap: 10 },
+  productCard: { background: colors.surface, border: `1px solid ${colors.border}`, borderRadius: 12, padding: "13px 14px", textAlign: "left", display: "flex", flexDirection: "column", gap: 4 },
+  productCardDisabled: { opacity: 0.45, cursor: "not-allowed" },
+  productCardTop: { display: "flex", justifyContent: "space-between", alignItems: "center" },
+  productCardCat: { fontSize: 10.5, textTransform: "uppercase", letterSpacing: "0.04em", color: colors.inkFaint, fontWeight: 700 },
+  productCardName: { fontSize: 14, fontWeight: 600, color: colors.ink, lineHeight: 1.3 },
+  productCardPrice: { fontSize: 13.5, fontWeight: 700, color: colors.accentDeep },
+  productCardStock: { fontSize: 11.5, fontWeight: 600 },
+  emptyState: { color: colors.inkFaint, fontSize: 13.5, padding: "30px 10px", textAlign: "center", gridColumn: "1 / -1" },
+
+  cartPanel: { background: colors.surface, border: `1px solid ${colors.border}`, borderRadius: 14, display: "flex", flexDirection: "column", position: "sticky", top: 90, maxHeight: "calc(100vh - 110px)" },
+  cartHeader: { display: "flex", alignItems: "center", gap: 8, padding: "14px 16px", fontWeight: 700, fontSize: 14.5, borderBottom: `1px solid ${colors.border}` },
+  cartBadge: { background: colors.accent, color: "#fff", fontSize: 11, fontWeight: 700, borderRadius: 20, padding: "1px 8px", marginLeft: "auto" },
+  cartList: { overflowY: "auto", padding: "8px 12px", flex: 1, minHeight: 60 },
+  cartEmpty: { color: colors.inkFaint, fontSize: 13, textAlign: "center", padding: "24px 8px" },
+  cartItem: { display: "flex", alignItems: "center", gap: 8, padding: "9px 4px", borderBottom: `1px solid ${colors.bg}` },
+  cartItemName: { fontSize: 13, fontWeight: 600, color: colors.ink },
+  cartItemPrice: { fontSize: 11.5, color: colors.inkFaint, marginTop: 1 },
+  qtyControl: { display: "flex", alignItems: "center", gap: 6, background: colors.bg, borderRadius: 8, padding: "3px 6px" },
+  qtyBtn: { border: "none", background: colors.surface, width: 20, height: 20, borderRadius: 5, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 1px 2px rgba(0,0,0,0.08)" },
+  qtyValue: { fontSize: 12.5, fontWeight: 700, minWidth: 16, textAlign: "center" },
+  cartRemoveBtn: { border: "none", background: "transparent", color: colors.inkFaint, padding: 4 },
+
+  saleOptionsBlock: { padding: "10px 16px 0" },
+  paymentToggle: { display: "flex", background: colors.bg, borderRadius: 9, padding: 3, gap: 3 },
+  paymentToggleBtn: { flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 5, border: "none", background: "transparent", padding: "7px 6px", borderRadius: 7, fontSize: 12.5, fontWeight: 600, color: colors.inkSoft },
+  paymentToggleBtnActive: { background: colors.surface, color: colors.ink, boxShadow: "0 1px 3px rgba(0,0,0,0.08)" },
+  paymentToggleBtnActiveCredit: { background: "#FBEEE0", color: "#8a6228", boxShadow: "0 1px 3px rgba(0,0,0,0.08)" },
+  clientSelectBtn: { display: "flex", alignItems: "center", gap: 7, width: "100%", border: `1px solid ${colors.border}`, background: colors.surface, padding: "9px 11px", borderRadius: 9, fontSize: 13, color: colors.ink },
+  clientDropdown: { position: "absolute", left: 0, right: 0, top: "calc(100% + 6px)", background: colors.surface, border: `1px solid ${colors.border}`, borderRadius: 10, boxShadow: "0 10px 30px rgba(0,0,0,0.12)", padding: 6, zIndex: 20, maxHeight: 240, overflowY: "auto" },
+  clientBalanceTag: { fontSize: 11, fontWeight: 700, color: "#b8863a", background: "#FBEEE0", padding: "1px 7px", borderRadius: 20 },
+  clientAddConfirmBtn: { border: "none", background: colors.green, color: "#fff", borderRadius: 7, padding: "7px 0", fontSize: 12.5, fontWeight: 700 },
+
+  cartFooter: { padding: 16, borderTop: `1px solid ${colors.border}` },
+  cartTotalRow: { display: "flex", justifyContent: "space-between", fontSize: 14, fontWeight: 600, marginBottom: 12 },
+  cartTotalValue: { fontSize: 18, fontWeight: 800, color: colors.accentDeep },
+  confirmBtn: { width: "100%", border: "none", background: colors.green, color: "#fff", padding: "13px", borderRadius: 10, fontWeight: 700, fontSize: 14 },
+  confirmBtnCredit: { background: "#B8863A" },
+  confirmBtnDisabled: { background: "#D8D2C5", cursor: "not-allowed" },
+
+  alertBanner: { display: "flex", alignItems: "center", gap: 8, background: "#FBEEE0", color: "#8a6228", padding: "10px 14px", borderRadius: 10, fontSize: 13, marginBottom: 16 },
+  stockToolbar: { display: "flex", gap: 10, marginBottom: 14, alignItems: "center", flexWrap: "wrap" },
+  addBtn: { display: "flex", alignItems: "center", gap: 6, border: "none", background: colors.ink, color: "#fff", padding: "10px 16px", borderRadius: 10, fontWeight: 600, fontSize: 13.5, whiteSpace: "nowrap" },
+  exportBtn: { display: "flex", alignItems: "center", gap: 6, border: `1px solid ${colors.border}`, background: colors.surface, color: colors.ink, padding: "10px 14px", borderRadius: 10, fontWeight: 600, fontSize: 13.5, whiteSpace: "nowrap" },
+  exportDropdown: { position: "absolute", right: 0, top: "calc(100% + 6px)", background: colors.surface, border: `1px solid ${colors.border}`, borderRadius: 10, boxShadow: "0 10px 30px rgba(0,0,0,0.12)", minWidth: 160, padding: 6, zIndex: 20 },
+
+  stockTableWrap: { background: colors.surface, border: `1px solid ${colors.border}`, borderRadius: 12, overflow: "hidden", overflowX: "auto" },
+  th: { textAlign: "left", fontSize: 11, textTransform: "uppercase", letterSpacing: "0.04em", color: colors.inkFaint, fontWeight: 700, padding: "11px 14px", borderBottom: `1px solid ${colors.border}`, whiteSpace: "nowrap" },
+  tr: { borderBottom: `1px solid ${colors.bg}` },
+  td: { padding: "11px 14px", fontSize: 13.5, color: colors.inkSoft, whiteSpace: "nowrap" },
+  tdName: { padding: "11px 14px", fontSize: 13.5, fontWeight: 600, color: colors.ink },
+  clientNameLink: { border: "none", background: "transparent", color: colors.ink, fontWeight: 600, fontSize: 13.5, padding: 0, textDecoration: "underline", textDecorationColor: colors.border },
+  stockPill: { padding: "2px 9px", borderRadius: 20, fontSize: 12, fontWeight: 700 },
+  editBtn: { border: `1px solid ${colors.border}`, background: colors.surface, borderRadius: 7, padding: 6, color: colors.inkSoft },
+  payBtn: { border: "none", background: "#5B7A4C", color: "#fff", borderRadius: 7, padding: "6px 11px", fontSize: 12, fontWeight: 700 },
+  emptyTableCell: { textAlign: "center", padding: "30px", color: colors.inkFaint, fontSize: 13.5 },
+
+  modalOverlay: { position: "fixed", inset: 0, background: "rgba(30,26,20,0.45)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 50, padding: 16 },
+  modal: { background: colors.surface, borderRadius: 16, width: "100%", maxWidth: 420, overflow: "hidden", maxHeight: "90vh", display: "flex", flexDirection: "column" },
+  modalHeader: { display: "flex", justifyContent: "space-between", alignItems: "center", padding: "16px 18px", fontWeight: 700, fontSize: 15, borderBottom: `1px solid ${colors.border}`, flexShrink: 0 },
+  modalCloseBtn: { border: "none", background: "transparent", color: colors.inkFaint },
+  modalBody: { padding: 18, display: "flex", flexDirection: "column", gap: 12, overflowY: "auto" },
+  fieldRow: { display: "flex", gap: 10 },
+  fieldLabel: { display: "flex", flexDirection: "column", gap: 5, fontSize: 12.5, fontWeight: 600, color: colors.inkSoft, flex: 1 },
+  input: { border: `1px solid ${colors.border}`, borderRadius: 8, padding: "9px 11px", fontSize: 14, outline: "none", color: colors.ink },
+  modalFooter: { display: "flex", alignItems: "center", gap: 8, padding: "14px 18px", borderTop: `1px solid ${colors.border}`, flexShrink: 0 },
+  deleteBtn: { display: "flex", alignItems: "center", gap: 5, border: "none", background: "transparent", color: "#c2533f", fontSize: 13, fontWeight: 600, padding: "8px 4px" },
+  cancelBtn: { border: `1px solid ${colors.border}`, background: colors.surface, padding: "9px 16px", borderRadius: 8, fontSize: 13.5, fontWeight: 600, color: colors.inkSoft },
+  saveBtn: { border: "none", background: colors.ink, color: "#fff", padding: "9px 18px", borderRadius: 8, fontSize: 13.5, fontWeight: 700, display: "flex", alignItems: "center" },
+
+  paymentClientInfo: { background: colors.bg, borderRadius: 10, padding: "10px 12px" },
+
+  clientDetailStats: { display: "flex", gap: 20, paddingBottom: 8 },
+  clientDetailLabel: { fontSize: 11.5, color: colors.inkFaint, fontWeight: 600 },
+  clientDetailValue: { fontSize: 17, fontWeight: 800, color: colors.ink, marginTop: 2 },
+  clientSaleRow: { display: "flex", justifyContent: "space-between", alignItems: "center", padding: "9px 0", borderBottom: `1px solid ${colors.bg}` },
+
+  receiptPreview: { background: colors.bg, borderRadius: 10, padding: 16, fontFamily: "'Courier New', monospace" },
+  receiptMeta: { fontSize: 11.5, color: colors.inkSoft },
+  receiptDivider: { borderTop: `1px dashed ${colors.inkFaint}`, margin: "8px 0" },
+  receiptItemRow: { display: "flex", justifyContent: "space-between", fontSize: 12.5, padding: "2px 0" },
+  receiptTotalRow: { display: "flex", justifyContent: "space-between", fontWeight: 800, fontSize: 14 },
+
+  rangeBarRow: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 18, flexWrap: "wrap", gap: 10 },
+  rangeBar: { display: "flex", gap: 6 },
+  rangeBtn: { border: `1px solid ${colors.border}`, background: colors.surface, color: colors.inkSoft, padding: "7px 14px", borderRadius: 20, fontSize: 13, fontWeight: 600 },
+  rangeBtnActive: { background: colors.ink, color: "#fff", borderColor: colors.ink },
+  statGrid: { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(190px, 1fr))", gap: 12, marginBottom: 20 },
+  statCard: { background: colors.surface, border: `1px solid ${colors.border}`, borderRadius: 12, padding: 16, display: "flex", alignItems: "center", gap: 12 },
+  statIcon: { width: 38, height: 38, borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 },
+  statValue: { fontSize: 17, fontWeight: 800, color: colors.ink, lineHeight: 1.2 },
+  statLabel: { fontSize: 12, color: colors.inkFaint, marginTop: 1 },
+
+  reportColumns: { display: "grid", gridTemplateColumns: "1.3fr 1fr", gap: 14, marginBottom: 14 },
+  reportCard: { background: colors.surface, border: `1px solid ${colors.border}`, borderRadius: 12, padding: 18, marginBottom: 14 },
+  reportCardTitle: { fontSize: 13.5, fontWeight: 700, color: colors.ink, marginBottom: 16 },
+  barChart: { display: "flex", alignItems: "flex-end", gap: 6, height: 140 },
+  barCol: { flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 6, height: "100%" },
+  barTrack: { flex: 1, width: "100%", display: "flex", alignItems: "flex-end" },
+  barFill: { width: "100%", background: colors.accent, borderRadius: "4px 4px 0 0", minHeight: 4 },
+  barLabel: { fontSize: 9.5, color: colors.inkFaint, fontWeight: 600 },
+  topRow: { display: "flex", alignItems: "center", gap: 10, padding: "9px 0", borderBottom: `1px solid ${colors.bg}` },
+  topRank: { width: 20, height: 20, borderRadius: "50%", background: colors.bg, color: colors.inkSoft, fontSize: 11, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 },
+  topName: { fontSize: 13.5, fontWeight: 600, color: colors.ink },
+  topMeta: { fontSize: 11.5, color: colors.inkFaint, marginTop: 1 },
+  topRevenue: { fontSize: 13, fontWeight: 700, color: colors.accentDeep },
+};
+
+const root = ReactDOM.createRoot(document.getElementById("root"));
+root.render(<App />);
+
+</script>
+<script>
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", () => {
+      navigator.serviceWorker.register("sw.js").catch(() => {});
+    });
+  }
+</script>
+</body>
+</html>
