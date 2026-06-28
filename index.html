@@ -1,83 +1,53 @@
 <!DOCTYPE html>
-<html lang="fr">
-<head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<html lang="fr"><head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
 <title>ÉLITE Boutique</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-body{background:#0B1120;font-family:system-ui,sans-serif;color:#F0F4FF;padding:20px}
-#log{font-size:13px;line-height:2}
-.ok{color:#2ECC9A}.err{color:#FF6B7A}.info{color:#E2B96F}
+body{background:#0B1120;font-family:system-ui,sans-serif;color:#F0F4FF}
 #root{min-height:100vh}
-::-webkit-scrollbar{width:5px}
-::-webkit-scrollbar-thumb{background:#2E4070;border-radius:10px}
+::-webkit-scrollbar{width:4px}::-webkit-scrollbar-thumb{background:#2E4070;border-radius:10px}
 select option{background:#1A2440;color:#F0F4FF}
-</style>
-</head>
-<body>
-<div id="log">
-<div class="info">⏳ Chargement React...</div>
-</div>
-<div id="root"></div>
-<script src="https://unpkg.com/react@18/umd/react.production.min.js"
-  onload="log('✅ React OK')" onerror="log('❌ React ERREUR')"></script>
-<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"
-  onload="log('✅ ReactDOM OK')" onerror="log('❌ ReactDOM ERREUR')"></script>
+</style></head><body>
+<div id="root"><div style="display:flex;align-items:center;justify-content:center;min-height:100vh;flex-direction:column;gap:12px">
+<div style="font-size:28px;font-weight:900;color:#E2B96F;letter-spacing:3px">ÉLITE</div>
+<div style="color:#8899BB;font-size:12px">Chargement…</div>
+</div></div>
+<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
 <script>
-function log(msg) {
-  var d = document.getElementById('log');
-  if(d) { var p=document.createElement('div'); p.innerHTML=msg; d.appendChild(p); }
-  console.log(msg);
-}
-
-window.onerror = function(msg, src, line, col, err) {
-  log('<span class="err">❌ JS ERREUR ligne '+line+': '+msg+'</span>');
-  return false;
-};
-</script>
-<script>
-log('<span class="info">⏳ Initialisation bundle...</span>');
-try {
-  var {useState,useMemo,useCallback,useEffect,useRef} = React;
-  log('✅ Hooks React OK');
-} catch(e) { log('<span class="err">❌ Hooks: '+e.message+'</span>'); }
-</script>
-<script>
+var {useState,useMemo,useCallback,useEffect,useRef}=React;
 var EliteBundle = (() => {
-  var __defProp = Object.defineProperty;
-  var __defProps = Object.defineProperties;
-  var __getOwnPropDescs = Object.getOwnPropertyDescriptors;
-  var __getOwnPropSymbols = Object.getOwnPropertySymbols;
-  var __hasOwnProp = Object.prototype.hasOwnProperty;
-  var __propIsEnum = Object.prototype.propertyIsEnumerable;
-  var __defNormalProp = (obj, key, value) => key in obj ? __defProp(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
-  var __spreadValues = (a, b) => {
-    for (var prop in b || (b = {}))
-      if (__hasOwnProp.call(b, prop))
-        __defNormalProp(a, prop, b[prop]);
-    if (__getOwnPropSymbols)
-      for (var prop of __getOwnPropSymbols(b)) {
-        if (__propIsEnum.call(b, prop))
-          __defNormalProp(a, prop, b[prop]);
-      }
-    return a;
+  const { useState, useMemo, useCallback, useEffect, useRef } = React;
+  const XLSX = {
+    utils: { book_new: () => ({ sheets: {}, order: [] }), json_to_sheet: (d) => d, book_append_sheet: (wb, ws, n) => {
+      wb.sheets[n] = ws;
+      wb.order.push(n);
+    } },
+    writeFile: (wb, fn) => {
+      const n = wb.order[0];
+      const d = wb.sheets[n] || [];
+      if (!d.length) return;
+      const h = Object.keys(d[0]);
+      const rows = [h.join(","), ...d.map((r) => h.map((k) => String(r[k] || "")).join(","))];
+      const b = new Blob([rows.join("\n")], { type: "text/csv" });
+      const u = URL.createObjectURL(b);
+      const a = document.createElement("a");
+      a.href = u;
+      a.download = fn.replace(".xlsx", ".csv");
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    }
   };
-  var __spreadProps = (a, b) => __defProps(a, __getOwnPropDescs(b));
-  var __objRest = (source, exclude) => {
-    var target = {};
-    for (var prop in source)
-      if (__hasOwnProp.call(source, prop) && exclude.indexOf(prop) < 0)
-        target[prop] = source[prop];
-    if (source != null && __getOwnPropSymbols)
-      for (var prop of __getOwnPropSymbols(source)) {
-        if (exclude.indexOf(prop) < 0 && __propIsEnum.call(source, prop))
-          target[prop] = source[prop];
-      }
-    return target;
-  };
-  var import_recharts = {};
-  const { useState, useMemo, useCallback, useEffect } = React;
+  const ResponsiveContainer = ({ height }) => /* @__PURE__ */ React.createElement("div", { style: { background: "#223058", borderRadius: 10, padding: 16, textAlign: "center", color: "#8899BB", fontSize: 11, height: height || 120, display: "flex", alignItems: "center", justifyContent: "center" } }, "\u{1F4CA} Graphique");
+  const BarChart = () => null;
+  const Bar = () => null;
+  const XAxis = () => null;
+  const YAxis = () => null;
+  const Tooltip = () => null;
+  const CartesianGrid = () => null;
+  const Legend = () => null;
   const T = {
     bg: "#0B1120",
     surface: "#1A2440",
@@ -259,7 +229,7 @@ var EliteBundle = (() => {
       setter((prev) => {
         const next = typeof updater === "function" ? updater(prev) : updater;
         const current = loadData() || SEED;
-        save(__spreadProps(__spreadValues({}, current), { [key]: next }));
+        save({ ...current, [key]: next });
         return next;
       });
     };
@@ -347,7 +317,7 @@ var EliteBundle = (() => {
           map[it.name].qty += it.qty;
         });
       });
-      return Object.values(map).map((p) => __spreadProps(__spreadValues({}, p), { margin: p.revenue - p.cogs, pct: p.revenue ? Math.round((p.revenue - p.cogs) / p.revenue * 100) : 0 })).sort((a, b) => b.margin - a.margin);
+      return Object.values(map).map((p) => ({ ...p, margin: p.revenue - p.cogs, pct: p.revenue ? Math.round((p.revenue - p.cogs) / p.revenue * 100) : 0 })).sort((a, b) => b.margin - a.margin);
     }, [safeSales]);
     const needsReorder = useMemo(() => products.filter((p) => p.qty <= p.alert), [products]);
     const clientStats = useMemo(() => {
@@ -356,7 +326,7 @@ var EliteBundle = (() => {
         const cSales = safeSales.filter((s) => s.client === c.name && s.status !== "annul\xE9e");
         const total = cSales.reduce((a, s) => a + saleTotal(s), 0);
         const sorted = [...cSales].sort((a, b) => b.date.localeCompare(a.date));
-        return __spreadProps(__spreadValues({}, c), { salesCount: cSales.length, totalSpent: total, lastVisit: ((_a = sorted[0]) == null ? void 0 : _a.date) || null, niveau: fid\u00E9lit\u00E9(total) });
+        return { ...c, salesCount: cSales.length, totalSpent: total, lastVisit: ((_a = sorted[0]) == null ? void 0 : _a.date) || null, niveau: fid\u00E9lit\u00E9(total) };
       }).sort((a, b) => b.totalSpent - a.totalSpent);
     }, [clients, sales]);
     return {
@@ -381,20 +351,78 @@ var EliteBundle = (() => {
     };
   }
   function exportExcel({ sales, products, expenses, debts, supplies }) {
-    const rows = ["Date,Articles,Total,Paiement,Client"];
-    sales.forEach((s) => {
-      const articles = (s.items || []).map((it) => it.name + "x" + it.qty).join("|");
-      const total = s.items ? s.items.reduce((a2, it) => a2 + it.qty * it.sell, 0) - (s.remise || 0) : 0;
-      rows.push([s.date, articles, total, s.payment, s.client || ""].join(","));
-    });
-    const blob = new Blob([rows.join("\n")], { type: "text/csv" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "ventes.csv";
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
+    const wb = XLSX.utils.book_new();
+    const addSheet = (name, data) => XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(data), name);
+    addSheet("Ventes", [
+      ...sales.map((s) => ({
+        Date: s.date,
+        Articles: (s.items || []).map((it) => `${it.name} x${it.qty}`).join(" | "),
+        "CA (GNF)": saleTotal(s),
+        "Co\xFBt (GNF)": saleCOGS(s),
+        "Marge (GNF)": saleTotal(s) - saleCOGS(s),
+        "Taux%": saleTotal(s) ? Math.round((saleTotal(s) - saleCOGS(s)) / saleTotal(s) * 100) : 0,
+        "Remise (GNF)": s.remise || 0,
+        Paiement: s.payment,
+        Client: s.client || "\u2014",
+        Tel: s.clientPhone || "\u2014"
+      })),
+      { Date: "TOTAL", Articles: "", "CA (GNF)": sales.reduce((a, s) => a + saleTotal(s), 0), "Co\xFBt (GNF)": sales.reduce((a, s) => a + saleCOGS(s), 0), "Marge (GNF)": sales.reduce((a, s) => a + saleTotal(s) - saleCOGS(s), 0), "Taux%": "", "Remise (GNF)": sales.reduce((a, s) => a + (s.remise || 0), 0), Paiement: "", Client: "", Tel: "" }
+    ]);
+    addSheet("Produits", products.map((p) => ({
+      Produit: p.name,
+      Cat\u00E9gorie: p.category,
+      Fournisseur: p.supplier,
+      "Achat (GNF)": p.buy,
+      "Vente (GNF)": p.sell,
+      "Marge unit.": p.sell - p.buy,
+      "Taux%": Math.round((p.sell - p.buy) / p.sell * 100),
+      Stock: p.qty,
+      "Seuil alerte": p.alert,
+      "Val. stock achat": p.qty * p.buy,
+      "Val. stock vente": p.qty * p.sell,
+      Statut: p.qty === 0 ? "Rupture" : p.qty <= p.alert ? "Critique" : p.qty <= p.alert * 2 ? "Faible" : "OK"
+    })));
+    addSheet("D\xE9penses", [
+      ...expenses.map((e) => ({ Date: e.date, Type: e.type, "Montant (GNF)": e.amount, Note: e.note || "\u2014" })),
+      { Date: "TOTAL", Type: "", "Montant (GNF)": expenses.reduce((a, e) => a + e.amount, 0), Note: "" }
+    ]);
+    addSheet("Dettes & Cr\xE9ances", debts.map((d) => ({
+      Type: d.type === "client" ? "Cr\xE9ance client" : "Dette fournisseur",
+      Nom: d.name,
+      "Total (GNF)": d.amount,
+      "Pay\xE9 (GNF)": d.paid,
+      "Reste (GNF)": d.amount - d.paid,
+      \u00C9ch\u00E9ance: d.due_date || "\u2014",
+      Statut: d.paid >= d.amount ? "Sold\xE9" : d.paid > 0 ? "Partiel" : "Impay\xE9",
+      Note: d.note || "\u2014"
+    })));
+    addSheet("Approvisionnements", supplies.map((s) => ({
+      Date: s.date,
+      Fournisseur: s.supplier,
+      Produit: s.product_name,
+      Qt\u00E9: s.qty,
+      "P.U. (GNF)": s.unit_buy,
+      "Total (GNF)": s.total,
+      "Pay\xE9 (GNF)": s.paid,
+      "Reste (GNF)": s.total - s.paid,
+      Statut: s.status,
+      Note: s.note || "\u2014"
+    })));
+    const CA = sales.reduce((a, s) => a + saleTotal(s), 0), Mg = sales.reduce((a, s) => a + saleTotal(s) - saleCOGS(s), 0);
+    const Dep = expenses.reduce((a, e) => a + e.amount, 0), Df = debts.filter((d) => d.type === "supplier").reduce((a, d) => a + (d.amount - d.paid), 0);
+    addSheet("R\xE9sum\xE9 financier", [
+      { Indicateur: "Chiffre d'affaires total", "Valeur (GNF)": CA },
+      { Indicateur: "Marge brute totale", "Valeur (GNF)": Mg },
+      { Indicateur: "Taux de marge (%)", "Valeur (GNF)": CA ? Math.round(Mg / CA * 100) : 0 },
+      { Indicateur: "D\xE9penses totales", "Valeur (GNF)": Dep },
+      { Indicateur: "Dettes fournisseurs restantes", "Valeur (GNF)": Df },
+      { Indicateur: "B\xE9n\xE9fice net estim\xE9", "Valeur (GNF)": Mg - Dep - Df },
+      { Indicateur: "Cr\xE9ances clients", "Valeur (GNF)": debts.filter((d) => d.type === "client").reduce((a, d) => a + (d.amount - d.paid), 0) },
+      { Indicateur: "Nb ventes total", "Valeur (GNF)": sales.length },
+      { Indicateur: "Panier moyen", "Valeur (GNF)": sales.length ? Math.round(CA / sales.length) : 0 },
+      { Indicateur: "Export\xE9 le", "Valeur (GNF)": nowStr() }
+    ]);
+    XLSX.writeFile(wb, `EliteBoutique_${today()}.xlsx`);
   }
   function buildReceiptText(sale) {
     const total = saleTotal(sale), remise = sale.remise || 0;
@@ -446,8 +474,7 @@ ${sale.payment === "Cr\xE9dit client" ? `<div class="cr">\u26A0\uFE0F Reste d\xF
     w.focus();
     setTimeout(() => w.print(), 400);
   }
-  const Card = ({ children, style = {} }) => /* @__PURE__ */ React.createElement("div", { style: __spreadValues({ background: T.surface, borderRadius: 14, border: `1px solid ${T.border}`, padding: 20 }, style) }, children);
-  const Dvd = ({ style = {} }) => /* @__PURE__ */ React.createElement("div", { style: __spreadValues({ borderTop: `1px solid ${T.border}`, margin: "10px 0" }, style) });
+  const Card = ({ children, style = {} }) => /* @__PURE__ */ React.createElement("div", { style: { background: T.surface, borderRadius: 14, border: `1px solid ${T.border}`, padding: 20, ...style } }, children);
   const Btn = ({ children, variant = "primary", onClick, small, disabled, full, style = {} }) => {
     const vs = {
       primary: { background: T.gold, color: "#0B1120" },
@@ -461,7 +488,7 @@ ${sale.payment === "Cr\xE9dit client" ? `<div class="cr">\u26A0\uFE0F Reste d\xF
       {
         onClick,
         disabled,
-        style: __spreadValues(__spreadValues({
+        style: {
           border: "none",
           borderRadius: 9,
           fontWeight: 700,
@@ -473,30 +500,27 @@ ${sale.payment === "Cr\xE9dit client" ? `<div class="cr">\u26A0\uFE0F Reste d\xF
           alignItems: "center",
           gap: 5,
           width: full ? "100%" : "auto",
-          justifyContent: full ? "center" : "flex-start"
-        }, vs[variant]), style)
+          justifyContent: full ? "center" : "flex-start",
+          ...vs[variant],
+          ...style
+        }
       },
       children
     );
   };
-  const Input = (_a) => {
-    var _b = _a, { label, note } = _b, p = __objRest(_b, ["label", "note"]);
-    return /* @__PURE__ */ React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 4 } }, label && /* @__PURE__ */ React.createElement("label", { style: { fontSize: 10, fontWeight: 700, color: T.muted, letterSpacing: 0.8 } }, label.toUpperCase()), /* @__PURE__ */ React.createElement("input", __spreadProps(__spreadValues({}, p), { style: __spreadValues({
-      background: T.elevated,
-      border: `1px solid ${T.border}`,
-      borderRadius: 8,
-      padding: "8px 11px",
-      fontSize: 13,
-      color: T.text,
-      outline: "none",
-      width: "100%",
-      boxSizing: "border-box"
-    }, p.style || {}) })), note && /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: T.muted } }, note));
-  };
-  const Sel = (_a) => {
-    var _b = _a, { label, options } = _b, p = __objRest(_b, ["label", "options"]);
-    return /* @__PURE__ */ React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 4 } }, label && /* @__PURE__ */ React.createElement("label", { style: { fontSize: 10, fontWeight: 700, color: T.muted, letterSpacing: 0.8 } }, label.toUpperCase()), /* @__PURE__ */ React.createElement("select", __spreadProps(__spreadValues({}, p), { style: { background: T.elevated, border: `1px solid ${T.border}`, borderRadius: 8, padding: "8px 11px", fontSize: 13, color: T.text, outline: "none" } }), options.map((o) => typeof o === "string" ? /* @__PURE__ */ React.createElement("option", { key: o }, o) : /* @__PURE__ */ React.createElement("option", { key: o.v, value: o.v }, o.l))));
-  };
+  const Input = ({ label, note, ...p }) => /* @__PURE__ */ React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 4 } }, label && /* @__PURE__ */ React.createElement("label", { style: { fontSize: 10, fontWeight: 700, color: T.muted, letterSpacing: 0.8 } }, label.toUpperCase()), /* @__PURE__ */ React.createElement("input", { ...p, style: {
+    background: T.elevated,
+    border: `1px solid ${T.border}`,
+    borderRadius: 8,
+    padding: "8px 11px",
+    fontSize: 13,
+    color: T.text,
+    outline: "none",
+    width: "100%",
+    boxSizing: "border-box",
+    ...p.style || {}
+  } }), note && /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: T.muted } }, note));
+  const Sel = ({ label, options, ...p }) => /* @__PURE__ */ React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 4 } }, label && /* @__PURE__ */ React.createElement("label", { style: { fontSize: 10, fontWeight: 700, color: T.muted, letterSpacing: 0.8 } }, label.toUpperCase()), /* @__PURE__ */ React.createElement("select", { ...p, style: { background: T.elevated, border: `1px solid ${T.border}`, borderRadius: 8, padding: "8px 11px", fontSize: 13, color: T.text, outline: "none" } }, options.map((o) => typeof o === "string" ? /* @__PURE__ */ React.createElement("option", { key: o }, o) : /* @__PURE__ */ React.createElement("option", { key: o.v, value: o.v }, o.l))));
   const Badge = ({ label, color, small }) => /* @__PURE__ */ React.createElement("span", { style: {
     background: color + "18",
     color,
@@ -524,7 +548,7 @@ ${sale.payment === "Cr\xE9dit client" ? `<div class="cr">\u26A0\uFE0F Reste d\xF
     boxShadow: "0 32px 80px rgba(0,0,0,.6)"
   } }, /* @__PURE__ */ React.createElement("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 18 } }, /* @__PURE__ */ React.createElement("h2", { style: { margin: 0, fontSize: 15, fontWeight: 800, color: T.gold } }, title), /* @__PURE__ */ React.createElement("button", { onClick: onClose, style: { background: "none", border: "none", color: T.muted, fontSize: 20, cursor: "pointer" } }, "\u2715")), children));
   const TH = ({ c }) => /* @__PURE__ */ React.createElement("th", { style: { padding: "9px 12px", textAlign: "left", color: T.muted, fontSize: 10, fontWeight: 700, borderBottom: `1px solid ${T.border}`, letterSpacing: 0.5, whiteSpace: "nowrap" } }, c.toUpperCase());
-  const TD = ({ children, style = {} }) => /* @__PURE__ */ React.createElement("td", { style: __spreadValues({ padding: "9px 12px" }, style) }, children);
+  const TD = ({ children, style = {} }) => /* @__PURE__ */ React.createElement("td", { style: { padding: "9px 12px", ...style } }, children);
   const TRow = ({ i, children }) => /* @__PURE__ */ React.createElement("tr", { style: { borderBottom: `1px solid ${T.border}`, background: i % 2 === 0 ? T.surface : T.elevated + "55" } }, children);
   const tooltipSt = { background: T.elevated, border: `1px solid ${T.border}`, borderRadius: 8, color: T.text, fontSize: 12 };
   const axisP = { tick: { fill: T.muted, fontSize: 10 }, axisLine: false, tickLine: false };
@@ -623,10 +647,10 @@ ${sale.payment === "Cr\xE9dit client" ? `<div class="cr">\u26A0\uFE0F Reste d\xF
       background: `linear-gradient(90deg,${T.gold},${T.purple})`,
       height: 7,
       borderRadius: 10
-    } })), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: T.muted, marginTop: 4 } }, mc.forecast ? Math.min(Math.round(mc.curCA / mc.forecast * 100), 100) : 0, "% de la pr\xE9vision atteint"))))), /* @__PURE__ */ React.createElement(Card, null, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 13, fontWeight: 700, color: T.text, marginBottom: 14 } }, "\xC9volution sur 12 mois"), /* @__PURE__ */ React.createElement("div", { style: { background: T.elevated, borderRadius: 10, padding: 20, textAlign: "center", color: T.muted, fontSize: 12 } }, "\u{1F4CA} Graphique disponible sur desktop")), /* @__PURE__ */ React.createElement("div", { style: { display: "grid", gridTemplateColumns: "1.3fr 1fr", gap: 16 } }, /* @__PURE__ */ React.createElement(Card, null, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 13, fontWeight: 700, color: T.text, marginBottom: 14 } }, "Top produits \u2014 Marge g\xE9n\xE9r\xE9e"), productMargins.slice(0, 5).map((p, i) => /* @__PURE__ */ React.createElement("div", { key: p.name, style: { display: "flex", alignItems: "center", gap: 10, marginBottom: 11 } }, /* @__PURE__ */ React.createElement("div", { style: { width: 22, height: 22, borderRadius: "50%", background: T.gold + "22", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, fontWeight: 800, color: T.gold } }, i + 1), /* @__PURE__ */ React.createElement("div", { style: { flex: 1, minWidth: 0 } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 12, fontWeight: 700, color: T.text, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" } }, p.name), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", justifyContent: "space-between", marginTop: 2 } }, /* @__PURE__ */ React.createElement("span", { style: { fontSize: 11, color: T.success, fontWeight: 700 } }, fmt(p.margin)), /* @__PURE__ */ React.createElement("span", { style: { fontSize: 10, color: T.muted } }, p.pct, "% \xB7 ", p.qty, " vendus")), /* @__PURE__ */ React.createElement("div", { style: { background: T.border, borderRadius: 10, height: 4, marginTop: 4 } }, /* @__PURE__ */ React.createElement("div", { style: { width: `${Math.min(p.pct, 100)}%`, background: p.pct >= 40 ? T.success : p.pct >= 20 ? T.warning : T.danger, height: 4, borderRadius: 10 } })))))), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 12 } }, /* @__PURE__ */ React.createElement(Card, { style: { borderLeft: `4px solid ${T.gold}`, padding: "12px 16px" } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, fontWeight: 700, color: T.gold, marginBottom: 6 } }, "\u{1F4D0} FORMULE B\xC9N\xC9FICE NET"), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: T.muted, fontFamily: "monospace", lineHeight: 2 } }, "CA \u2212 Achats \u2212 D\xE9penses \u2212 Dettes fourn.", /* @__PURE__ */ React.createElement("br", null), /* @__PURE__ */ React.createElement("span", { style: { color: kpis.netProfit >= 0 ? T.success : T.danger, fontWeight: 900, fontSize: 14 } }, "= ", fmt(kpis.netProfit)))), needsReorder.length > 0 && /* @__PURE__ */ React.createElement(Card, { style: { borderLeft: `4px solid ${T.danger}`, padding: "12px 16px" } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, fontWeight: 700, color: T.danger, marginBottom: 6 } }, "\u26A0\uFE0F ALERTES STOCK (", needsReorder.length, ")"), needsReorder.slice(0, 5).map((p) => /* @__PURE__ */ React.createElement("div", { key: p.id, style: { display: "flex", justifyContent: "space-between", fontSize: 11, marginBottom: 4 } }, /* @__PURE__ */ React.createElement("span", { style: { color: T.text } }, p.name), /* @__PURE__ */ React.createElement("span", { style: { color: T.danger, fontWeight: 700 } }, p.qty, "/", p.alert)))))));
+    } })), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: T.muted, marginTop: 4 } }, mc.forecast ? Math.min(Math.round(mc.curCA / mc.forecast * 100), 100) : 0, "% de la pr\xE9vision atteint"))))), /* @__PURE__ */ React.createElement(Card, null, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 13, fontWeight: 700, color: T.text, marginBottom: 14 } }, "\xC9volution sur 12 mois"), /* @__PURE__ */ React.createElement(ResponsiveContainer, { width: "100%", height: 190 }, /* @__PURE__ */ React.createElement(BarChart, { data: monthlyStats, barGap: 2 }, /* @__PURE__ */ React.createElement(CartesianGrid, { strokeDasharray: "3 3", stroke: T.border, vertical: false }), /* @__PURE__ */ React.createElement(XAxis, { dataKey: "label", ...axisP }), /* @__PURE__ */ React.createElement(YAxis, { tickFormatter: fmtK, ...axisP }), /* @__PURE__ */ React.createElement(Tooltip, { formatter: (v) => fmt(v), contentStyle: tooltipSt }), /* @__PURE__ */ React.createElement(Legend, { wrapperStyle: { fontSize: 11, color: T.muted } }), /* @__PURE__ */ React.createElement(Bar, { dataKey: "ca", name: "CA", fill: T.gold, radius: [3, 3, 0, 0] }), /* @__PURE__ */ React.createElement(Bar, { dataKey: "marge", name: "Marge brute", fill: T.success, radius: [3, 3, 0, 0] }), /* @__PURE__ */ React.createElement(Bar, { dataKey: "profit", name: "Profit net", fill: T.purple, radius: [3, 3, 0, 0] })))), /* @__PURE__ */ React.createElement("div", { style: { display: "grid", gridTemplateColumns: "1.3fr 1fr", gap: 16 } }, /* @__PURE__ */ React.createElement(Card, null, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 13, fontWeight: 700, color: T.text, marginBottom: 14 } }, "Top produits \u2014 Marge g\xE9n\xE9r\xE9e"), productMargins.slice(0, 5).map((p, i) => /* @__PURE__ */ React.createElement("div", { key: p.name, style: { display: "flex", alignItems: "center", gap: 10, marginBottom: 11 } }, /* @__PURE__ */ React.createElement("div", { style: { width: 22, height: 22, borderRadius: "50%", background: T.gold + "22", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, fontWeight: 800, color: T.gold } }, i + 1), /* @__PURE__ */ React.createElement("div", { style: { flex: 1, minWidth: 0 } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 12, fontWeight: 700, color: T.text, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" } }, p.name), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", justifyContent: "space-between", marginTop: 2 } }, /* @__PURE__ */ React.createElement("span", { style: { fontSize: 11, color: T.success, fontWeight: 700 } }, fmt(p.margin)), /* @__PURE__ */ React.createElement("span", { style: { fontSize: 10, color: T.muted } }, p.pct, "% \xB7 ", p.qty, " vendus")), /* @__PURE__ */ React.createElement("div", { style: { background: T.border, borderRadius: 10, height: 4, marginTop: 4 } }, /* @__PURE__ */ React.createElement("div", { style: { width: `${Math.min(p.pct, 100)}%`, background: p.pct >= 40 ? T.success : p.pct >= 20 ? T.warning : T.danger, height: 4, borderRadius: 10 } })))))), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 12 } }, /* @__PURE__ */ React.createElement(Card, { style: { borderLeft: `4px solid ${T.gold}`, padding: "12px 16px" } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, fontWeight: 700, color: T.gold, marginBottom: 6 } }, "\u{1F4D0} FORMULE B\xC9N\xC9FICE NET"), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: T.muted, fontFamily: "monospace", lineHeight: 2 } }, "CA \u2212 Achats \u2212 D\xE9penses \u2212 Dettes fourn.", /* @__PURE__ */ React.createElement("br", null), /* @__PURE__ */ React.createElement("span", { style: { color: kpis.netProfit >= 0 ? T.success : T.danger, fontWeight: 900, fontSize: 14 } }, "= ", fmt(kpis.netProfit)))), needsReorder.length > 0 && /* @__PURE__ */ React.createElement(Card, { style: { borderLeft: `4px solid ${T.danger}`, padding: "12px 16px" } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, fontWeight: 700, color: T.danger, marginBottom: 6 } }, "\u26A0\uFE0F ALERTES STOCK (", needsReorder.length, ")"), needsReorder.slice(0, 5).map((p) => /* @__PURE__ */ React.createElement("div", { key: p.id, style: { display: "flex", justifyContent: "space-between", fontSize: 11, marginBottom: 4 } }, /* @__PURE__ */ React.createElement("span", { style: { color: T.text } }, p.name), /* @__PURE__ */ React.createElement("span", { style: { color: T.danger, fontWeight: 700 } }, p.qty, "/", p.alert)))))));
   }
   function CaissePage({ products, sales, setSales, setProducts, setDebts, userRole }) {
-    var _a, _b, _c;
+    var _a;
     const blank = { date: today(), client: "", clientPhone: "", payment: PAY_MODES[0], remise: 0, acompte: 0, note: "" };
     const [form, setForm] = useState(blank);
     const [items, setItems] = useState([]);
@@ -653,7 +677,7 @@ ${sale.payment === "Cr\xE9dit client" ? `<div class="cr">\u26A0\uFE0F Reste d\xF
       const buyPrice = +selBuy || p.buy;
       setItems((prev) => {
         const ex = prev.find((i) => i.pid === p.id);
-        return ex ? prev.map((i) => i.pid === p.id ? __spreadProps(__spreadValues({}, i), { qty: i.qty + selQ, buy: buyPrice }) : i) : [...prev, { pid: p.id, name: p.name, qty: +selQ, buy: buyPrice, sell: p.sell }];
+        return ex ? prev.map((i) => i.pid === p.id ? { ...i, qty: i.qty + selQ, buy: buyPrice } : i) : [...prev, { pid: p.id, name: p.name, qty: +selQ, buy: buyPrice, sell: p.sell }];
       });
       setSelP("");
       setSelQ(1);
@@ -675,7 +699,7 @@ ${sale.payment === "Cr\xE9dit client" ? `<div class="cr">\u26A0\uFE0F Reste d\xF
       };
       setProducts((prev) => prev.map((p) => {
         const it = items.find((i) => i.pid === p.id);
-        return it ? __spreadProps(__spreadValues({}, p), { qty: p.qty - it.qty }) : p;
+        return it ? { ...p, qty: p.qty - it.qty } : p;
       }));
       if (form.payment === "Cr\xE9dit client") {
         const rd = net - (+form.acompte || 0);
@@ -687,10 +711,10 @@ ${sale.payment === "Cr\xE9dit client" ? `<div class="cr">\u26A0\uFE0F Reste d\xF
       setReceipt(sale);
     };
     const cancelSale = (s) => {
-      setSales((prev) => prev.map((v) => v.id === s.id ? __spreadProps(__spreadValues({}, v), { status: "annul\xE9e" }) : v));
+      setSales((prev) => prev.map((v) => v.id === s.id ? { ...v, status: "annul\xE9e" } : v));
       if (s.items) setProducts((prev) => prev.map((p) => {
         const it = s.items.find((i) => i.name === p.name);
-        return it ? __spreadProps(__spreadValues({}, p), { qty: p.qty + it.qty }) : p;
+        return it ? { ...p, qty: p.qty + it.qty } : p;
       }));
       setCancelConfirm(null);
     };
@@ -698,141 +722,69 @@ ${sale.payment === "Cr\xE9dit client" ? `<div class="cr">\u26A0\uFE0F Reste d\xF
     const [renameVal, setRenameVal] = useState("");
     const safeSales = useMemo(() => sales.filter((s) => s && Array.isArray(s.items)), [sales]);
     const filteredSales = useMemo(() => safeSales.filter((s) => !search || s.items.some((it) => it.name.toLowerCase().includes(search.toLowerCase())) || (s.client || "").toLowerCase().includes(search.toLowerCase())), [safeSales, search]);
-    return /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 18 } }, /* @__PURE__ */ React.createElement("h1", { style: { margin: 0, fontSize: 22, fontWeight: 900, color: T.gold } }, "\u{1F6D2} Caisse client"), /* @__PURE__ */ React.createElement(Btn, { variant: "ghost", small: true, onClick: () => setHist((h) => !h) }, hist ? "\u2190 Retour caisse" : "\u{1F4CB} Historique")), hist ? /* @__PURE__ */ React.createElement(Card, { style: { padding: 0, overflow: "hidden" } }, /* @__PURE__ */ React.createElement("div", { style: { padding: "10px 14px", borderBottom: `1px solid ${T.border}`, display: "flex", gap: 10, alignItems: "center" } }, /* @__PURE__ */ React.createElement(
+    return /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 } }, /* @__PURE__ */ React.createElement("h1", { style: { margin: 0, fontSize: 20, fontWeight: 900, color: T.gold } }, "\u{1F6D2} Caisse"), /* @__PURE__ */ React.createElement(Btn, { variant: "ghost", small: true, onClick: () => setHist((h) => !h) }, hist ? "\u2190 Caisse" : "\u{1F4CB} Historique")), hist ? /* @__PURE__ */ React.createElement(Card, { style: { padding: 0, overflow: "hidden" } }, /* @__PURE__ */ React.createElement("div", { style: { padding: "10px 14px", borderBottom: `1px solid ${T.border}`, display: "flex", gap: 10, alignItems: "center" } }, /* @__PURE__ */ React.createElement(
       "input",
       {
         value: search,
         onChange: (e) => setSearch(e.target.value),
-        placeholder: "\u{1F50D} Rechercher vente ou client\u2026",
+        placeholder: "\u{1F50D} Rechercher\u2026",
         style: { flex: 1, background: T.elevated, border: `1px solid ${T.border}`, borderRadius: 8, padding: "7px 11px", fontSize: 12, color: T.text, outline: "none" }
       }
-    ), /* @__PURE__ */ React.createElement("span", { style: { fontSize: 11, color: T.muted } }, filteredSales.length, " vente(s)")), /* @__PURE__ */ React.createElement("div", { style: { overflowX: "auto" } }, /* @__PURE__ */ React.createElement("table", { style: { width: "100%", borderCollapse: "collapse", fontSize: 12 } }, /* @__PURE__ */ React.createElement("thead", null, /* @__PURE__ */ React.createElement("tr", { style: { background: T.elevated } }, ["Date", "Articles", "Net", "Paiement", "Client", "Statut", "Re\xE7u", userRole === "admin" ? "Annuler" : ""].map((c) => /* @__PURE__ */ React.createElement(TH, { key: c, c })))), /* @__PURE__ */ React.createElement("tbody", null, filteredSales.length === 0 ? /* @__PURE__ */ React.createElement("tr", null, /* @__PURE__ */ React.createElement("td", { colSpan: 8, style: { padding: 28, textAlign: "center", color: T.muted } }, "Aucune vente")) : filteredSales.map((s, i) => {
-      const annul\u00E9e = s.status === "annul\xE9e";
-      return /* @__PURE__ */ React.createElement(TRow, { key: s.id, i }, /* @__PURE__ */ React.createElement(TD, { style: { color: T.muted } }, s.date), /* @__PURE__ */ React.createElement(TD, null, /* @__PURE__ */ React.createElement("div", { style: { maxWidth: 180, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", color: annul\u00E9e ? T.muted : T.text, fontWeight: 600, textDecoration: annul\u00E9e ? "line-through" : "none" } }, (s.items || []).map((it) => `${it.name} \xD7${it.qty}`).join(", "))), /* @__PURE__ */ React.createElement(TD, { style: { fontFamily: "monospace", fontWeight: 800, color: annul\u00E9e ? T.muted : T.text } }, fmt(saleTotal(s))), /* @__PURE__ */ React.createElement(TD, null, /* @__PURE__ */ React.createElement(Badge, { label: s.payment, color: annul\u00E9e ? T.muted : PAY_COLOR[s.payment] || T.muted })), /* @__PURE__ */ React.createElement(TD, { style: { color: T.muted } }, s.client || "\u2014"), /* @__PURE__ */ React.createElement(TD, null, /* @__PURE__ */ React.createElement(Badge, { label: annul\u00E9e ? "Annul\xE9e" : "Confirm\xE9e", color: annul\u00E9e ? T.danger : T.success })), /* @__PURE__ */ React.createElement(TD, null, !annul\u00E9e && /* @__PURE__ */ React.createElement(Btn, { small: true, variant: "ghost", onClick: () => setReceipt(s) }, "\u{1F9FE}")), userRole === "admin" && /* @__PURE__ */ React.createElement(TD, null, !annul\u00E9e && /* @__PURE__ */ React.createElement(Btn, { small: true, variant: "danger", onClick: () => setCancelConfirm(s) }, "\u21A9 Annuler")));
-    }))))) : /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 18, alignItems: "flex-start" } }, /* @__PURE__ */ React.createElement("div", { style: { flex: 1, display: "flex", flexDirection: "column", gap: 13 } }, /* @__PURE__ */ React.createElement(Card, null, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, fontWeight: 700, color: T.gold, marginBottom: 11, letterSpacing: 0.5 } }, "INFORMATIONS CLIENT"), /* @__PURE__ */ React.createElement("div", { style: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 11 } }, /* @__PURE__ */ React.createElement(Input, { label: "Nom du client", value: form.client, onChange: (e) => setForm((f) => __spreadProps(__spreadValues({}, f), { client: e.target.value })), placeholder: "Mamadou Bah\u2026" }), /* @__PURE__ */ React.createElement(Input, { label: "T\xE9l\xE9phone WhatsApp", value: form.clientPhone, onChange: (e) => setForm((f) => __spreadProps(__spreadValues({}, f), { clientPhone: e.target.value })), placeholder: "620 00 00 00" }))), /* @__PURE__ */ React.createElement(Card, null, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, fontWeight: 700, color: T.gold, marginBottom: 11, letterSpacing: 0.5 } }, "AJOUTER UN ARTICLE"), /* @__PURE__ */ React.createElement("div", { style: { display: "grid", gridTemplateColumns: "1fr auto auto auto", gap: 9, alignItems: "flex-end" } }, /* @__PURE__ */ React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 4 } }, /* @__PURE__ */ React.createElement("label", { style: { fontSize: 10, fontWeight: 700, color: T.muted, letterSpacing: 0.8 } }, "PRODUIT"), /* @__PURE__ */ React.createElement("div", { style: { position: "relative" } }, /* @__PURE__ */ React.createElement(
-      "input",
-      {
-        value: prodSearch,
-        onChange: (e) => {
-          setProdSearch(e.target.value);
-          setSelP("");
-          setSelBuy("");
-          setShowDrop(true);
-        },
-        onFocus: () => setShowDrop(true),
-        placeholder: "\u{1F50D} Taper pour rechercher\u2026",
-        style: {
-          width: "100%",
-          background: T.elevated,
-          border: `1px solid ${selP ? T.gold : T.border}`,
-          borderRadius: 8,
-          padding: "8px 11px",
-          fontSize: 13,
-          color: T.text,
-          outline: "none",
-          boxSizing: "border-box"
-        }
-      }
-    ), showDrop && prodSearch && /* @__PURE__ */ React.createElement("div", { style: {
-      position: "absolute",
-      top: "100%",
-      left: 0,
-      right: 0,
-      background: T.surface,
-      border: `1px solid ${T.border}`,
-      borderRadius: 10,
-      zIndex: 500,
-      maxHeight: 200,
-      overflowY: "auto",
-      boxShadow: "0 8px 24px rgba(0,0,0,.4)",
-      marginTop: 4
-    } }, products.filter((p) => p.name.toLowerCase().includes(prodSearch.toLowerCase())).length === 0 ? /* @__PURE__ */ React.createElement("div", { style: { padding: "10px 14px", fontSize: 12, color: T.muted } }, "Aucun produit trouv\xE9") : products.filter((p) => p.name.toLowerCase().includes(prodSearch.toLowerCase())).map((p) => /* @__PURE__ */ React.createElement(
-      "div",
-      {
-        key: p.id,
-        onClick: () => {
-          setSelP(p.id);
-          setProdSearch(p.name);
-          setSelBuy(p.buy);
-          setShowDrop(false);
-        },
-        style: {
-          padding: "9px 14px",
-          fontSize: 12,
-          cursor: "pointer",
-          borderBottom: `1px solid ${T.border}`,
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          background: selP === p.id ? T.gold + "18" : T.surface,
-          color: T.text
-        },
-        onMouseEnter: (e) => e.currentTarget.style.background = T.elevated,
-        onMouseLeave: (e) => e.currentTarget.style.background = selP === p.id ? T.gold + "18" : T.surface
-      },
-      /* @__PURE__ */ React.createElement("span", { style: { fontWeight: 600 } }, p.name),
-      /* @__PURE__ */ React.createElement("span", { style: { color: T.muted, fontSize: 11 } }, "stock: ", p.qty)
-    ))))), /* @__PURE__ */ React.createElement("div", { style: { width: 60 } }, /* @__PURE__ */ React.createElement(Input, { label: "Qt\xE9", type: "number", min: "1", value: selQ, onChange: (e) => setSelQ(+e.target.value) })), /* @__PURE__ */ React.createElement("div", { style: { width: 120 } }, /* @__PURE__ */ React.createElement(
-      Input,
-      {
-        label: "Prix achat (GNF)",
-        type: "number",
-        min: "0",
-        value: selBuy,
-        onChange: (e) => setSelBuy(e.target.value),
-        placeholder: selP ? fmt(((_a = products.find((x) => x.id === selP)) == null ? void 0 : _a.buy) || 0) : "\u2014",
-        note: selBuy && selP ? `Marge : ${fmt((((_b = products.find((x) => x.id === selP)) == null ? void 0 : _b.sell) || 0) - +selBuy)}` : ""
-      }
-    )), /* @__PURE__ */ React.createElement(Btn, { onClick: addItem, disabled: !selP || selQ < 1, style: { marginBottom: selBuy && selP ? 16 : 0 } }, "+ Ajouter")), selP && !selBuy && /* @__PURE__ */ React.createElement("div", { style: { marginTop: 8, fontSize: 11, color: T.warning, background: T.warning + "11", borderRadius: 8, padding: "6px 10px" } }, "\u26A0\uFE0F Prix d'achat non saisi \u2014 le prix par d\xE9faut (", fmt(((_c = products.find((x) => x.id === selP)) == null ? void 0 : _c.buy) || 0), ") sera utilis\xE9.")), items.length > 0 && /* @__PURE__ */ React.createElement(Card, { style: { padding: 0, overflow: "hidden" } }, /* @__PURE__ */ React.createElement("div", { style: { padding: "9px 14px", borderBottom: `1px solid ${T.border}`, display: "flex", justifyContent: "space-between", alignItems: "center" } }, /* @__PURE__ */ React.createElement("span", { style: { fontSize: 12, fontWeight: 700, color: T.text } }, "Panier (", items.length, ")"), /* @__PURE__ */ React.createElement("span", { style: { fontSize: 10, color: T.muted } }, "Prix d'achat modifiable par article")), /* @__PURE__ */ React.createElement("table", { style: { width: "100%", borderCollapse: "collapse", fontSize: 12 } }, /* @__PURE__ */ React.createElement("thead", null, /* @__PURE__ */ React.createElement("tr", { style: { background: T.elevated } }, ["Produit", "Qt\xE9", "P. Achat", "P. Vente", "Marge", "Total vente", ""].map((c) => /* @__PURE__ */ React.createElement(TH, { key: c, c })))), /* @__PURE__ */ React.createElement("tbody", null, items.map((it, i) => {
+    ), /* @__PURE__ */ React.createElement("span", { style: { fontSize: 11, color: T.muted } }, filteredSales.length)), /* @__PURE__ */ React.createElement("div", { style: { overflowX: "auto" } }, /* @__PURE__ */ React.createElement("table", { style: { width: "100%", borderCollapse: "collapse", fontSize: 12 } }, /* @__PURE__ */ React.createElement("thead", null, /* @__PURE__ */ React.createElement("tr", { style: { background: T.elevated } }, ["Date", "Articles", "Total", "Paiement", "Statut", ""].map((c) => /* @__PURE__ */ React.createElement(TH, { key: c, c })))), /* @__PURE__ */ React.createElement("tbody", null, filteredSales.length === 0 ? /* @__PURE__ */ React.createElement("tr", null, /* @__PURE__ */ React.createElement("td", { colSpan: 6, style: { padding: 24, textAlign: "center", color: T.muted } }, "Aucune vente")) : filteredSales.map((s, i) => {
+      const ann = s.status === "annul\xE9e";
+      return /* @__PURE__ */ React.createElement(TRow, { key: s.id, i }, /* @__PURE__ */ React.createElement(TD, { style: { color: T.muted, whiteSpace: "nowrap" } }, s.date), /* @__PURE__ */ React.createElement(TD, null, /* @__PURE__ */ React.createElement("div", { style: {
+        maxWidth: 150,
+        overflow: "hidden",
+        textOverflow: "ellipsis",
+        whiteSpace: "nowrap",
+        color: ann ? T.muted : T.text,
+        textDecoration: ann ? "line-through" : "none",
+        fontWeight: 600
+      } }, (s.items || []).map((it) => it.name + " \xD7" + it.qty).join(", "))), /* @__PURE__ */ React.createElement(TD, { style: { fontFamily: "monospace", fontWeight: 800, color: ann ? T.muted : T.gold, whiteSpace: "nowrap" } }, fmt(saleTotal(s))), /* @__PURE__ */ React.createElement(TD, null, /* @__PURE__ */ React.createElement(Badge, { label: s.payment, color: ann ? T.muted : PAY_COLOR[s.payment] || T.muted, small: true })), /* @__PURE__ */ React.createElement(TD, null, /* @__PURE__ */ React.createElement(Badge, { label: ann ? "Annul\xE9e" : "OK", color: ann ? T.danger : T.success, small: true })), /* @__PURE__ */ React.createElement(TD, { style: { whiteSpace: "nowrap" } }, !ann && /* @__PURE__ */ React.createElement(Btn, { small: true, variant: "ghost", onClick: () => setReceipt(s) }, "\u{1F9FE}"), !ann && userRole === "admin" && /* @__PURE__ */ React.createElement(Btn, { small: true, variant: "danger", style: { marginLeft: 4 }, onClick: () => setCancelConfirm(s) }, "\u2715")));
+    }))))) : /* @__PURE__ */ React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 12 } }, /* @__PURE__ */ React.createElement(Card, null, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, fontWeight: 700, color: T.gold, marginBottom: 10, letterSpacing: 0.5 } }, "CLIENT"), /* @__PURE__ */ React.createElement("div", { style: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 } }, /* @__PURE__ */ React.createElement(Input, { label: "Nom", value: form.client, onChange: (e) => setForm((f) => ({ ...f, client: e.target.value })), placeholder: "Mamadou\u2026" }), /* @__PURE__ */ React.createElement(Input, { label: "T\xE9l\xE9phone", value: form.clientPhone, onChange: (e) => setForm((f) => ({ ...f, clientPhone: e.target.value })), placeholder: "620000000" }))), /* @__PURE__ */ React.createElement(Card, null, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, fontWeight: 700, color: T.gold, marginBottom: 10, letterSpacing: 0.5 } }, "AJOUTER UN ARTICLE"), /* @__PURE__ */ React.createElement(Sel, { label: "Produit", value: selP, onChange: (e) => {
+      setSelP(e.target.value);
+      const p = products.find((x) => x.id === e.target.value);
+      setSelBuy(p ? String(p.buy) : "");
+    }, options: [{ v: "", l: "\u2014 Choisir \u2014" }, ...products.filter((p) => p.qty > 0).map((p) => ({ v: p.id, l: p.name + " (" + p.qty + ")" }))] }), /* @__PURE__ */ React.createElement("div", { style: { display: "grid", gridTemplateColumns: "80px 1fr auto", gap: 8, marginTop: 10, alignItems: "flex-end" } }, /* @__PURE__ */ React.createElement(Input, { label: "Qt\xE9", type: "number", min: "1", value: selQ, onChange: (e) => setSelQ(+e.target.value) }), /* @__PURE__ */ React.createElement(Input, { label: "Prix achat", type: "number", value: selBuy, onChange: (e) => setSelBuy(e.target.value), placeholder: "GNF" }), /* @__PURE__ */ React.createElement(Btn, { onClick: addItem, disabled: !selP || selQ < 1 }, "+")), selP && selBuy && /* @__PURE__ */ React.createElement("div", { style: { fontSize: 11, color: T.success, marginTop: 6, fontWeight: 700 } }, "Marge : ", fmt((((_a = products.find((x) => x.id === selP)) == null ? void 0 : _a.sell) || 0) - +selBuy))), items.length > 0 && /* @__PURE__ */ React.createElement(Card, { style: { padding: 0, overflow: "hidden" } }, /* @__PURE__ */ React.createElement("div", { style: { padding: "8px 14px", borderBottom: `1px solid ${T.border}`, fontSize: 12, fontWeight: 700, color: T.text } }, "Panier (", items.length, " article", items.length > 1 ? "s" : "", ")"), items.map((it, i) => {
       const mg = it.qty * (it.sell - it.buy);
-      const mgPct = it.sell ? Math.round((it.sell - it.buy) / it.sell * 100) : 0;
-      return /* @__PURE__ */ React.createElement(TRow, { key: it.pid, i }, /* @__PURE__ */ React.createElement(TD, { style: { minWidth: 120 } }, /* @__PURE__ */ React.createElement("div", { style: { fontWeight: 600, color: T.text } }, it.name), /* @__PURE__ */ React.createElement(
+      return /* @__PURE__ */ React.createElement("div", { key: it.pid, style: { padding: "10px 14px", borderBottom: `1px solid ${T.border}`, background: i % 2 === 0 ? T.surface : T.elevated + "55" } }, /* @__PURE__ */ React.createElement("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 } }, /* @__PURE__ */ React.createElement("span", { style: { fontWeight: 700, color: T.text, fontSize: 13 } }, it.name), /* @__PURE__ */ React.createElement(
         "button",
         {
-          onClick: () => {
-            setRenameItem(it);
-            setRenameVal(it.name);
-          },
-          style: { background: "none", border: "none", color: T.muted, cursor: "pointer", fontSize: 10, padding: 0, marginTop: 2 }
+          onClick: () => setItems((p) => p.filter((x) => x.pid !== it.pid)),
+          style: { background: "none", border: "none", color: T.danger, cursor: "pointer", fontSize: 16, lineHeight: 1 }
         },
-        "\u270F\uFE0F renommer"
-      )), /* @__PURE__ */ React.createElement(TD, null, /* @__PURE__ */ React.createElement(
+        "\u2715"
+      )), /* @__PURE__ */ React.createElement("div", { style: { display: "grid", gridTemplateColumns: "60px 1fr 1fr 80px", gap: 8, alignItems: "center" } }, /* @__PURE__ */ React.createElement(
         "input",
         {
           type: "number",
           min: "1",
           value: it.qty,
-          onChange: (e) => setItems((p) => p.map((x) => x.pid === it.pid ? __spreadProps(__spreadValues({}, x), { qty: +e.target.value }) : x)),
-          style: { width: 48, background: T.elevated, border: `1px solid ${T.border}`, borderRadius: 6, padding: "3px 5px", color: T.text, textAlign: "center", fontSize: 12 }
+          onChange: (e) => setItems((p) => p.map((x) => x.pid === it.pid ? { ...x, qty: +e.target.value } : x)),
+          style: { background: T.elevated, border: `1px solid ${T.border}`, borderRadius: 6, padding: "4px 6px", color: T.text, fontSize: 12, textAlign: "center" }
         }
-      )), /* @__PURE__ */ React.createElement(TD, null, /* @__PURE__ */ React.createElement(
-        "input",
-        {
-          type: "number",
-          min: "0",
-          value: it.buy,
-          onChange: (e) => setItems((p) => p.map((x) => x.pid === it.pid ? __spreadProps(__spreadValues({}, x), { buy: +e.target.value }) : x)),
-          style: { width: 90, background: T.warning + "18", border: `1px solid ${T.warning}55`, borderRadius: 6, padding: "3px 7px", color: T.text, fontSize: 12, fontFamily: "monospace" }
-        }
-      )), /* @__PURE__ */ React.createElement(TD, { style: { fontFamily: "monospace", color: T.muted } }, fmt(it.sell)), /* @__PURE__ */ React.createElement(TD, null, /* @__PURE__ */ React.createElement("span", { style: { fontWeight: 700, color: mg >= 0 ? T.success : T.danger, fontSize: 11 } }, fmt(mg)), /* @__PURE__ */ React.createElement("span", { style: { color: T.muted, fontSize: 10, display: "block" } }, mgPct, "%")), /* @__PURE__ */ React.createElement(TD, { style: { fontFamily: "monospace", fontWeight: 700 } }, fmt(it.qty * it.sell)), /* @__PURE__ */ React.createElement(TD, null, /* @__PURE__ */ React.createElement(
-        "button",
-        {
-          onClick: () => setItems((p) => p.filter((x) => x.pid !== it.pid)),
-          style: { background: "none", border: "none", color: T.danger, cursor: "pointer", fontSize: 15 }
-        },
-        "\u2715"
-      )));
-    }))))), /* @__PURE__ */ React.createElement("div", { style: { width: 278, display: "flex", flexDirection: "column", gap: 11, position: "sticky", top: 20 } }, /* @__PURE__ */ React.createElement(Card, null, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, fontWeight: 700, color: T.gold, marginBottom: 11, letterSpacing: 0.5 } }, "R\xC9CAPITULATIF"), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", justifyContent: "space-between", color: T.muted, fontSize: 12, marginBottom: 8 } }, /* @__PURE__ */ React.createElement("span", null, "Sous-total"), /* @__PURE__ */ React.createElement("span", { style: { fontFamily: "monospace" } }, fmt(total))), /* @__PURE__ */ React.createElement(Input, { label: "Remise (GNF)", type: "number", min: "0", value: form.remise, onChange: (e) => setForm((f) => __spreadProps(__spreadValues({}, f), { remise: e.target.value })) }), /* @__PURE__ */ React.createElement(Dvd, null), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", justifyContent: "space-between", fontWeight: 900, fontSize: 18 } }, /* @__PURE__ */ React.createElement("span", { style: { color: T.muted } }, "NET"), /* @__PURE__ */ React.createElement("span", { style: { color: T.gold, fontFamily: "monospace" } }, fmt(net))), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 11, color: marge >= 0 ? T.success : T.danger, fontWeight: 600, marginTop: 4 } }, "Marge estim\xE9e : ", fmt(marge))), /* @__PURE__ */ React.createElement(Card, null, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, fontWeight: 700, color: T.gold, marginBottom: 11, letterSpacing: 0.5 } }, "PAIEMENT"), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 9 } }, /* @__PURE__ */ React.createElement(Sel, { label: "Mode", value: form.payment, onChange: (e) => setForm((f) => __spreadProps(__spreadValues({}, f), { payment: e.target.value })), options: PAY_MODES }), /* @__PURE__ */ React.createElement(Input, { label: "Date", type: "date", value: form.date, onChange: (e) => setForm((f) => __spreadProps(__spreadValues({}, f), { date: e.target.value })) }), form.payment === "Cr\xE9dit client" && /* @__PURE__ */ React.createElement(Input, { label: "Acompte re\xE7u (GNF)", type: "number", min: "0", value: form.acompte, onChange: (e) => setForm((f) => __spreadProps(__spreadValues({}, f), { acompte: e.target.value })), placeholder: "0" }), /* @__PURE__ */ React.createElement(Input, { label: "Note", value: form.note, onChange: (e) => setForm((f) => __spreadProps(__spreadValues({}, f), { note: e.target.value })), placeholder: "Remarque\u2026" }))), /* @__PURE__ */ React.createElement(Btn, { onClick: confirmSale, disabled: !items.length, full: true, style: { padding: 13, fontSize: 14 } }, "\u2705 Confirmer la vente"), form.payment === "Cr\xE9dit client" && net - (+form.acompte || 0) > 0 && /* @__PURE__ */ React.createElement("div", { style: { background: T.warning + "15", border: `1px solid ${T.warning}44`, borderRadius: 10, padding: 9, fontSize: 11, color: T.warning } }, "\u26A0\uFE0F Cr\xE9dit : ", fmt(net - (+form.acompte || 0)), " \u2192 dette client cr\xE9\xE9e auto"))), receipt && /* @__PURE__ */ React.createElement(ReceiptModal, { sale: receipt, onClose: () => setReceipt(null) }), renameItem && /* @__PURE__ */ React.createElement(Modal, { title: "\u270F\uFE0F Renommer l'article", onClose: () => setRenameItem(null), width: 380 }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 12, color: T.muted, marginBottom: 12 } }, "Nom actuel : ", /* @__PURE__ */ React.createElement("strong", { style: { color: T.text } }, renameItem.name)), /* @__PURE__ */ React.createElement(Input, { label: "Nouveau nom", value: renameVal, onChange: (e) => setRenameVal(e.target.value), placeholder: "Nouveau nom\u2026" }), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 8, marginTop: 8 } }, /* @__PURE__ */ React.createElement(Btn, { small: true, variant: "ghost", onClick: () => {
+      ), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 11, color: T.muted } }, "\xD7 ", fmt(it.sell)), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 12, fontWeight: 800, color: T.gold } }, fmt(it.qty * it.sell)), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 11, color: mg >= 0 ? T.success : T.danger, fontWeight: 700, textAlign: "right" } }, fmt(mg))));
+    }), /* @__PURE__ */ React.createElement("div", { style: { padding: "10px 14px", background: T.elevated } }, /* @__PURE__ */ React.createElement("div", { style: { display: "flex", justifyContent: "space-between", fontSize: 13, marginBottom: 6 } }, /* @__PURE__ */ React.createElement("span", { style: { color: T.muted } }, "Sous-total"), /* @__PURE__ */ React.createElement("span", { style: { fontFamily: "monospace", fontWeight: 700 } }, fmt(total))), /* @__PURE__ */ React.createElement(Input, { label: "Remise (GNF)", type: "number", min: "0", value: form.remise, onChange: (e) => setForm((f) => ({ ...f, remise: e.target.value })) }), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", justifyContent: "space-between", marginTop: 10, fontSize: 18, fontWeight: 900 } }, /* @__PURE__ */ React.createElement("span", { style: { color: T.muted } }, "NET"), /* @__PURE__ */ React.createElement("span", { style: { color: T.gold, fontFamily: "monospace" } }, fmt(net))))), /* @__PURE__ */ React.createElement(Card, null, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, fontWeight: 700, color: T.gold, marginBottom: 10, letterSpacing: 0.5 } }, "PAIEMENT"), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 9 } }, /* @__PURE__ */ React.createElement(Sel, { label: "Mode", value: form.payment, onChange: (e) => setForm((f) => ({ ...f, payment: e.target.value })), options: PAY_MODES }), /* @__PURE__ */ React.createElement(Input, { label: "Date", type: "date", value: form.date, onChange: (e) => setForm((f) => ({ ...f, date: e.target.value })) }), form.payment === "Cr\xE9dit client" && /* @__PURE__ */ React.createElement(
+      Input,
+      {
+        label: "Acompte re\xE7u (GNF)",
+        type: "number",
+        min: "0",
+        value: form.acompte,
+        onChange: (e) => setForm((f) => ({ ...f, acompte: e.target.value })),
+        placeholder: "0"
+      }
+    ), /* @__PURE__ */ React.createElement(Input, { label: "Note", value: form.note, onChange: (e) => setForm((f) => ({ ...f, note: e.target.value })), placeholder: "Remarque\u2026" }))), /* @__PURE__ */ React.createElement(Btn, { onClick: confirmSale, disabled: !items.length, full: true, style: { padding: 14, fontSize: 15 } }, "\u2705 Confirmer la vente \u2014 ", fmt(net)), form.payment === "Cr\xE9dit client" && net - (+form.acompte || 0) > 0 && /* @__PURE__ */ React.createElement("div", { style: { background: T.warning + "15", border: `1px solid ${T.warning}44`, borderRadius: 10, padding: 10, fontSize: 12, color: T.warning } }, "\u26A0\uFE0F Cr\xE9dit accord\xE9 : ", fmt(net - (+form.acompte || 0)), " \u2192 dette client cr\xE9\xE9e automatiquement")), receipt && /* @__PURE__ */ React.createElement(ReceiptModal, { sale: receipt, onClose: () => setReceipt(null) }), renameItem && /* @__PURE__ */ React.createElement(Modal, { title: "\u270F\uFE0F Renommer l'article", onClose: () => setRenameItem(null), width: 380 }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 12, color: T.muted, marginBottom: 12 } }, "Nom actuel : ", /* @__PURE__ */ React.createElement("strong", { style: { color: T.text } }, renameItem.name)), /* @__PURE__ */ React.createElement(Input, { label: "Nouveau nom", value: renameVal, onChange: (e) => setRenameVal(e.target.value), placeholder: "Nouveau nom\u2026" }), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 8, marginTop: 8 } }, /* @__PURE__ */ React.createElement(Btn, { small: true, variant: "ghost", onClick: () => {
       if (renameVal.trim() && renameVal !== renameItem.name) {
-        setProducts((prev) => prev.map((p) => p.id === renameItem.pid ? __spreadProps(__spreadValues({}, p), { name: renameVal.trim() }) : p));
-        setItems((prev) => prev.map((it) => it.pid === renameItem.pid ? __spreadProps(__spreadValues({}, it), { name: renameVal.trim() }) : it));
+        setProducts((prev) => prev.map((p) => p.id === renameItem.pid ? { ...p, name: renameVal.trim() } : p));
+        setItems((prev) => prev.map((it) => it.pid === renameItem.pid ? { ...it, name: renameVal.trim() } : it));
       }
       setRenameItem(null);
     } }, "Renommer aussi la fiche produit")), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", justifyContent: "flex-end", gap: 10, marginTop: 14 } }, /* @__PURE__ */ React.createElement(Btn, { variant: "ghost", onClick: () => setRenameItem(null) }, "Annuler"), /* @__PURE__ */ React.createElement(Btn, { onClick: () => {
       if (!renameVal.trim()) return;
-      setItems((prev) => prev.map((it) => it.pid === renameItem.pid ? __spreadProps(__spreadValues({}, it), { name: renameVal.trim() }) : it));
+      setItems((prev) => prev.map((it) => it.pid === renameItem.pid ? { ...it, name: renameVal.trim() } : it));
       setRenameItem(null);
-    }, disabled: !renameVal.trim() }, "\u2705 Renommer (panier uniquement)"))), showDrop && /* @__PURE__ */ React.createElement("div", { style: { position: "fixed", inset: 0, zIndex: 400 }, onClick: () => setShowDrop(false) }), /* @__PURE__ */ React.createElement(Modal, { title: "\u21A9 Annuler cette vente ?", onClose: () => setCancelConfirm(null), width: 400 }, /* @__PURE__ */ React.createElement("div", { style: { background: T.elevated, borderRadius: 10, padding: "12px 14px", marginBottom: 14, fontSize: 13 } }, /* @__PURE__ */ React.createElement("div", { style: { color: T.text, fontWeight: 700, marginBottom: 6 } }, cancelConfirm.items.map((it) => `${it.name} \xD7${it.qty}`).join(", ")), /* @__PURE__ */ React.createElement("div", { style: { color: T.muted } }, "Client : ", cancelConfirm.client || "\u2014", " \xB7 ", cancelConfirm.date), /* @__PURE__ */ React.createElement("div", { style: { color: T.gold, fontWeight: 800, marginTop: 6 } }, fmt(saleTotal(cancelConfirm)))), /* @__PURE__ */ React.createElement("div", { style: { background: T.warning + "15", border: `1px solid ${T.warning}44`, borderRadius: 10, padding: 11, fontSize: 12, color: T.warning, marginBottom: 16 } }, "\u26A0\uFE0F Le stock des articles sera remis automatiquement. Cette action ne peut pas \xEAtre annul\xE9e."), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", justifyContent: "flex-end", gap: 10 } }, /* @__PURE__ */ React.createElement(Btn, { variant: "ghost", onClick: () => setCancelConfirm(null) }, "Non, garder"), /* @__PURE__ */ React.createElement(Btn, { variant: "danger", onClick: () => cancelSale(cancelConfirm) }, "\u2705 Oui, annuler la vente"))), ")}");
+    }, disabled: !renameVal.trim() }, "\u2705 Renommer (panier uniquement)"))), /* @__PURE__ */ React.createElement(Modal, { title: "\u21A9 Annuler cette vente ?", onClose: () => setCancelConfirm(null), width: 400 }, /* @__PURE__ */ React.createElement("div", { style: { background: T.elevated, borderRadius: 10, padding: "12px 14px", marginBottom: 14, fontSize: 13 } }, /* @__PURE__ */ React.createElement("div", { style: { color: T.text, fontWeight: 700, marginBottom: 6 } }, cancelConfirm.items.map((it) => `${it.name} \xD7${it.qty}`).join(", ")), /* @__PURE__ */ React.createElement("div", { style: { color: T.muted } }, "Client : ", cancelConfirm.client || "\u2014", " \xB7 ", cancelConfirm.date), /* @__PURE__ */ React.createElement("div", { style: { color: T.gold, fontWeight: 800, marginTop: 6 } }, fmt(saleTotal(cancelConfirm)))), /* @__PURE__ */ React.createElement("div", { style: { background: T.warning + "15", border: `1px solid ${T.warning}44`, borderRadius: 10, padding: 11, fontSize: 12, color: T.warning, marginBottom: 16 } }, "\u26A0\uFE0F Le stock des articles sera remis automatiquement. Cette action ne peut pas \xEAtre annul\xE9e."), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", justifyContent: "flex-end", gap: 10 } }, /* @__PURE__ */ React.createElement(Btn, { variant: "ghost", onClick: () => setCancelConfirm(null) }, "Non, garder"), /* @__PURE__ */ React.createElement(Btn, { variant: "danger", onClick: () => cancelSale(cancelConfirm) }, "\u2705 Oui, annuler la vente"))), ")}");
   }
   function ApprovPage({ products, setProducts, supplies, setSupplies, setDebts, needsReorder }) {
     const [modal, setModal] = useState(false);
@@ -859,7 +811,7 @@ ${sale.payment === "Cr\xE9dit client" ? `<div class="cr">\u26A0\uFE0F Reste d\xF
         status: (+form.paid || 0) >= total ? "sold\xE9" : (+form.paid || 0) > 0 ? "partiel" : "impay\xE9",
         note: form.note
       };
-      setProducts((prev) => prev.map((p) => p.id === form.product_id ? __spreadProps(__spreadValues({}, p), { qty: p.qty + +form.qty, buy: +form.unit_buy }) : p));
+      setProducts((prev) => prev.map((p) => p.id === form.product_id ? { ...p, qty: p.qty + +form.qty, buy: +form.unit_buy } : p));
       const rd = total - (+form.paid || 0);
       if (rd > 0) setDebts((prev) => [...prev, { id: genId(), type: "supplier", name: form.supplier, amount: rd, due_date: "", paid: 0, note: `Appro \u2014 ${(selProd == null ? void 0 : selProd.name) || ""}` }]);
       setSupplies((prev) => [s, ...prev]);
@@ -871,7 +823,7 @@ ${sale.payment === "Cr\xE9dit client" ? `<div class="cr">\u26A0\uFE0F Reste d\xF
       setSupplies((prev) => prev.map((s) => {
         if (s.id !== payM.id) return s;
         const np = Math.min(s.paid + +payAmt, s.total);
-        return __spreadProps(__spreadValues({}, s), { paid: np, status: np >= s.total ? "sold\xE9" : "partiel" });
+        return { ...s, paid: np, status: np >= s.total ? "sold\xE9" : "partiel" };
       }));
       setPayM(null);
       setPayAmt("");
@@ -887,7 +839,7 @@ ${sale.payment === "Cr\xE9dit client" ? `<div class="cr">\u26A0\uFE0F Reste d\xF
       return Object.values(map);
     }, [supplies]);
     return /* @__PURE__ */ React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 18 } }, /* @__PURE__ */ React.createElement("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "center" } }, /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("h1", { style: { margin: 0, fontSize: 22, fontWeight: 900, color: T.gold } }, "\u{1F4E6} Approvisionnement"), /* @__PURE__ */ React.createElement("p", { style: { margin: "3px 0 0", color: T.muted, fontSize: 12 } }, supplies.length, " r\xE9ception(s)")), /* @__PURE__ */ React.createElement(Btn, { onClick: () => setModal(true) }, "+ R\xE9ceptionner marchandise")), needsReorder.length > 0 && /* @__PURE__ */ React.createElement("div", { style: { background: T.danger + "11", border: `1px solid ${T.danger}44`, borderRadius: 12, padding: 14 } }, /* @__PURE__ */ React.createElement("div", { style: { fontWeight: 800, color: T.danger, marginBottom: 10, fontSize: 13 } }, "\u26A0\uFE0F ", needsReorder.length, " produit(s) \xE0 commander urgemment"), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 9, flexWrap: "wrap" } }, needsReorder.map((p) => /* @__PURE__ */ React.createElement("div", { key: p.id, style: { background: T.danger + "18", borderRadius: 8, padding: "8px 12px" } }, /* @__PURE__ */ React.createElement("div", { style: { fontWeight: 700, color: T.text, fontSize: 12 } }, p.name), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 11, color: T.danger, fontWeight: 700 } }, "Stock: ", p.qty, " / Seuil: ", p.alert), /* @__PURE__ */ React.createElement(Btn, { small: true, style: { marginTop: 6 }, onClick: () => {
-      setForm((f) => __spreadProps(__spreadValues({}, f), { product_id: p.id, supplier: p.supplier, unit_buy: p.buy }));
+      setForm((f) => ({ ...f, product_id: p.id, supplier: p.supplier, unit_buy: p.buy }));
       setModal(true);
     } }, "Commander"))))), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 8 } }, [{ k: "history", l: "\u{1F4CB} Historique" }, { k: "suppliers", l: "\u{1F3ED} Par fournisseur" }].map((t) => /* @__PURE__ */ React.createElement("button", { key: t.k, onClick: () => setTab(t.k), style: { padding: "7px 16px", borderRadius: 20, border: `1px solid ${tab === t.k ? T.gold : T.border}`, background: tab === t.k ? T.gold + "15" : "transparent", color: tab === t.k ? T.gold : T.muted, fontWeight: 700, fontSize: 12, cursor: "pointer" } }, t.l))), tab === "history" ? /* @__PURE__ */ React.createElement(Card, { style: { padding: 0, overflow: "hidden" } }, /* @__PURE__ */ React.createElement("div", { style: { overflowX: "auto" } }, /* @__PURE__ */ React.createElement("table", { style: { width: "100%", borderCollapse: "collapse", fontSize: 12 } }, /* @__PURE__ */ React.createElement("thead", null, /* @__PURE__ */ React.createElement("tr", { style: { background: T.elevated } }, ["Date", "Fournisseur", "Produit", "Qt\xE9", "P.U.", "Total", "Pay\xE9", "Reste d\xFB", "Statut", "Action"].map((c) => /* @__PURE__ */ React.createElement(TH, { key: c, c })))), /* @__PURE__ */ React.createElement("tbody", null, supplies.length === 0 ? /* @__PURE__ */ React.createElement("tr", null, /* @__PURE__ */ React.createElement("td", { colSpan: 10, style: { padding: 28, textAlign: "center", color: T.muted } }, "Aucun approvisionnement")) : supplies.map((s, i) => /* @__PURE__ */ React.createElement(TRow, { key: s.id, i }, /* @__PURE__ */ React.createElement(TD, { style: { color: T.muted } }, s.date), /* @__PURE__ */ React.createElement(TD, { style: { fontWeight: 700, color: T.text } }, s.supplier), /* @__PURE__ */ React.createElement(TD, null, s.product_name), /* @__PURE__ */ React.createElement(TD, { style: { textAlign: "center" } }, s.qty), /* @__PURE__ */ React.createElement(TD, { style: { fontFamily: "monospace", color: T.muted } }, fmt(s.unit_buy)), /* @__PURE__ */ React.createElement(TD, { style: { fontFamily: "monospace", fontWeight: 700 } }, fmt(s.total)), /* @__PURE__ */ React.createElement(TD, { style: { color: T.success, fontFamily: "monospace" } }, fmt(s.paid)), /* @__PURE__ */ React.createElement(TD, { style: { fontWeight: 800, color: s.paid >= s.total ? T.success : T.danger, fontFamily: "monospace" } }, s.paid >= s.total ? "\u2705" : fmt(s.total - s.paid)), /* @__PURE__ */ React.createElement(TD, null, /* @__PURE__ */ React.createElement(Badge, { label: s.status, color: stC[s.status] || T.muted })), /* @__PURE__ */ React.createElement(TD, null, s.paid < s.total && /* @__PURE__ */ React.createElement(Btn, { small: true, variant: "success", onClick: () => {
       setPayM(s);
@@ -895,18 +847,18 @@ ${sale.payment === "Cr\xE9dit client" ? `<div class="cr">\u26A0\uFE0F Reste d\xF
     } }, "Payer")))))))) : /* @__PURE__ */ React.createElement("div", { style: { display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(240px,1fr))", gap: 13 } }, bySupplier.map((sup) => {
       const reste = sup.total - sup.paid;
       return /* @__PURE__ */ React.createElement(Card, { key: sup.name, style: { borderLeft: `3px solid ${reste > 0 ? T.warning : T.success}` } }, /* @__PURE__ */ React.createElement("div", { style: { fontWeight: 800, fontSize: 14, color: T.text, marginBottom: 9 } }, sup.name), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 12, color: T.muted, marginBottom: 7 } }, sup.orders, " commande(s)"), [["Total", fmt(sup.total), T.text], ["Pay\xE9", fmt(sup.paid), T.success], ["Reste d\xFB", reste > 0 ? fmt(reste) : "\u2705 Sold\xE9", reste > 0 ? T.danger : T.success]].map(([l, v, c]) => /* @__PURE__ */ React.createElement("div", { key: l, style: { display: "flex", justifyContent: "space-between", fontSize: 12, marginBottom: 4 } }, /* @__PURE__ */ React.createElement("span", { style: { color: T.muted } }, l), /* @__PURE__ */ React.createElement("span", { style: { fontWeight: 700, color: c, fontFamily: "monospace" } }, v))));
-    })), modal && /* @__PURE__ */ React.createElement(Modal, { title: "\u{1F4E6} R\xE9ceptionner une marchandise", onClose: () => setModal(false) }, /* @__PURE__ */ React.createElement("div", { style: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 13 } }, /* @__PURE__ */ React.createElement(Input, { label: "Date", type: "date", value: form.date, onChange: (e) => setForm((f) => __spreadProps(__spreadValues({}, f), { date: e.target.value })) }), /* @__PURE__ */ React.createElement(Input, { label: "Fournisseur", value: form.supplier, onChange: (e) => setForm((f) => __spreadProps(__spreadValues({}, f), { supplier: e.target.value })), placeholder: "Nom du fournisseur" }), /* @__PURE__ */ React.createElement("div", { style: { gridColumn: "1/-1" } }, /* @__PURE__ */ React.createElement(
+    })), modal && /* @__PURE__ */ React.createElement(Modal, { title: "\u{1F4E6} R\xE9ceptionner une marchandise", onClose: () => setModal(false) }, /* @__PURE__ */ React.createElement("div", { style: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 13 } }, /* @__PURE__ */ React.createElement(Input, { label: "Date", type: "date", value: form.date, onChange: (e) => setForm((f) => ({ ...f, date: e.target.value })) }), /* @__PURE__ */ React.createElement(Input, { label: "Fournisseur", value: form.supplier, onChange: (e) => setForm((f) => ({ ...f, supplier: e.target.value })), placeholder: "Nom du fournisseur" }), /* @__PURE__ */ React.createElement("div", { style: { gridColumn: "1/-1" } }, /* @__PURE__ */ React.createElement(
       Sel,
       {
         label: "Produit re\xE7u",
         value: form.product_id,
         onChange: (e) => setForm((f) => {
           var _a;
-          return __spreadProps(__spreadValues({}, f), { product_id: e.target.value, unit_buy: ((_a = products.find((p) => p.id === e.target.value)) == null ? void 0 : _a.buy) || "" });
+          return { ...f, product_id: e.target.value, unit_buy: ((_a = products.find((p) => p.id === e.target.value)) == null ? void 0 : _a.buy) || "" };
         }),
         options: [{ v: "", l: "\u2014 S\xE9lectionner \u2014" }, ...products.map((p) => ({ v: p.id, l: `${p.name} (stock: ${p.qty})` }))]
       }
-    )), /* @__PURE__ */ React.createElement(Input, { label: "Quantit\xE9 re\xE7ue", type: "number", min: "1", value: form.qty, onChange: (e) => setForm((f) => __spreadProps(__spreadValues({}, f), { qty: e.target.value })) }), /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement(Input, { label: "Prix unitaire d'achat", type: "number", value: form.unit_buy, onChange: (e) => setForm((f) => __spreadProps(__spreadValues({}, f), { unit_buy: e.target.value })) }), total > 0 && /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: T.gold, marginTop: 3, fontWeight: 700 } }, "Total : ", fmt(total))), /* @__PURE__ */ React.createElement(Input, { label: "Acompte pay\xE9 (GNF)", type: "number", min: "0", value: form.paid, onChange: (e) => setForm((f) => __spreadProps(__spreadValues({}, f), { paid: e.target.value })), placeholder: "0 = paiement diff\xE9r\xE9" }), /* @__PURE__ */ React.createElement(Input, { label: "Note / N\xB0 facture", value: form.note, onChange: (e) => setForm((f) => __spreadProps(__spreadValues({}, f), { note: e.target.value })), placeholder: "R\xE9f\xE9rence\u2026" })), total > 0 && /* @__PURE__ */ React.createElement("div", { style: { background: T.elevated, borderRadius: 10, padding: 11, marginTop: 12, display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8, fontSize: 12 } }, [["Total facture", fmt(total), T.text], ["Acompte pay\xE9", fmt(+form.paid || 0), T.success], ["Dette cr\xE9\xE9e", total - (+form.paid || 0) > 0 ? fmt(total - (+form.paid || 0)) : "\u2705 Sold\xE9", total - (+form.paid || 0) > 0 ? T.danger : T.success]].map(([l, v, c]) => /* @__PURE__ */ React.createElement("div", { key: l }, /* @__PURE__ */ React.createElement("div", { style: { color: T.muted, fontSize: 10, marginBottom: 2 } }, l), /* @__PURE__ */ React.createElement("div", { style: { fontWeight: 800, color: c } }, v)))), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", justifyContent: "flex-end", gap: 10, marginTop: 16 } }, /* @__PURE__ */ React.createElement(Btn, { variant: "ghost", onClick: () => setModal(false) }, "Annuler"), /* @__PURE__ */ React.createElement(Btn, { onClick: handleReceive, disabled: !form.supplier || !form.product_id || !form.qty || !form.unit_buy }, "\u2705 Valider la r\xE9ception"))), payM && /* @__PURE__ */ React.createElement(Modal, { title: "\u{1F4B8} Payer le fournisseur", onClose: () => setPayM(null), width: 350 }, /* @__PURE__ */ React.createElement("div", { style: { marginBottom: 12, fontSize: 12, color: T.muted } }, /* @__PURE__ */ React.createElement("strong", { style: { color: T.text } }, payM.supplier), " \u2014 ", payM.product_name, /* @__PURE__ */ React.createElement("br", null), "Reste : ", /* @__PURE__ */ React.createElement("strong", { style: { color: T.danger } }, fmt(payM.total - payM.paid))), /* @__PURE__ */ React.createElement(Input, { label: "Montant (GNF)", type: "number", value: payAmt, onChange: (e) => setPayAmt(e.target.value) }), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", justifyContent: "flex-end", gap: 10, marginTop: 16 } }, /* @__PURE__ */ React.createElement(Btn, { variant: "ghost", onClick: () => setPayM(null) }, "Annuler"), /* @__PURE__ */ React.createElement(Btn, { onClick: handlePay, disabled: !payAmt }, "Confirmer"))));
+    )), /* @__PURE__ */ React.createElement(Input, { label: "Quantit\xE9 re\xE7ue", type: "number", min: "1", value: form.qty, onChange: (e) => setForm((f) => ({ ...f, qty: e.target.value })) }), /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement(Input, { label: "Prix unitaire d'achat", type: "number", value: form.unit_buy, onChange: (e) => setForm((f) => ({ ...f, unit_buy: e.target.value })) }), total > 0 && /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: T.gold, marginTop: 3, fontWeight: 700 } }, "Total : ", fmt(total))), /* @__PURE__ */ React.createElement(Input, { label: "Acompte pay\xE9 (GNF)", type: "number", min: "0", value: form.paid, onChange: (e) => setForm((f) => ({ ...f, paid: e.target.value })), placeholder: "0 = paiement diff\xE9r\xE9" }), /* @__PURE__ */ React.createElement(Input, { label: "Note / N\xB0 facture", value: form.note, onChange: (e) => setForm((f) => ({ ...f, note: e.target.value })), placeholder: "R\xE9f\xE9rence\u2026" })), total > 0 && /* @__PURE__ */ React.createElement("div", { style: { background: T.elevated, borderRadius: 10, padding: 11, marginTop: 12, display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8, fontSize: 12 } }, [["Total facture", fmt(total), T.text], ["Acompte pay\xE9", fmt(+form.paid || 0), T.success], ["Dette cr\xE9\xE9e", total - (+form.paid || 0) > 0 ? fmt(total - (+form.paid || 0)) : "\u2705 Sold\xE9", total - (+form.paid || 0) > 0 ? T.danger : T.success]].map(([l, v, c]) => /* @__PURE__ */ React.createElement("div", { key: l }, /* @__PURE__ */ React.createElement("div", { style: { color: T.muted, fontSize: 10, marginBottom: 2 } }, l), /* @__PURE__ */ React.createElement("div", { style: { fontWeight: 800, color: c } }, v)))), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", justifyContent: "flex-end", gap: 10, marginTop: 16 } }, /* @__PURE__ */ React.createElement(Btn, { variant: "ghost", onClick: () => setModal(false) }, "Annuler"), /* @__PURE__ */ React.createElement(Btn, { onClick: handleReceive, disabled: !form.supplier || !form.product_id || !form.qty || !form.unit_buy }, "\u2705 Valider la r\xE9ception"))), payM && /* @__PURE__ */ React.createElement(Modal, { title: "\u{1F4B8} Payer le fournisseur", onClose: () => setPayM(null), width: 350 }, /* @__PURE__ */ React.createElement("div", { style: { marginBottom: 12, fontSize: 12, color: T.muted } }, /* @__PURE__ */ React.createElement("strong", { style: { color: T.text } }, payM.supplier), " \u2014 ", payM.product_name, /* @__PURE__ */ React.createElement("br", null), "Reste : ", /* @__PURE__ */ React.createElement("strong", { style: { color: T.danger } }, fmt(payM.total - payM.paid))), /* @__PURE__ */ React.createElement(Input, { label: "Montant (GNF)", type: "number", value: payAmt, onChange: (e) => setPayAmt(e.target.value) }), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", justifyContent: "flex-end", gap: 10, marginTop: 16 } }, /* @__PURE__ */ React.createElement(Btn, { variant: "ghost", onClick: () => setPayM(null) }, "Annuler"), /* @__PURE__ */ React.createElement(Btn, { onClick: handlePay, disabled: !payAmt }, "Confirmer"))));
   }
   function ProductsPage({ products, setProducts }) {
     const [modal, setModal] = useState(null);
@@ -917,9 +869,9 @@ ${sale.payment === "Cr\xE9dit client" ? `<div class="cr">\u26A0\uFE0F Reste d\xF
     const stL = { ok: "En stock", faible: "Faible", critique: "Critique \u26A0\uFE0F", rupture: "Rupture" };
     const save2 = () => {
       if (!form.name || !form.buy || !form.sell) return;
-      const p = __spreadProps(__spreadValues({}, form), { buy: +form.buy, sell: +form.sell, qty: +form.qty, alert: +form.alert });
-      if (modal === "new") setProducts((prev) => [...prev, __spreadValues({ id: genId() }, p)]);
-      else setProducts((prev) => prev.map((x) => x.id === modal.id ? __spreadValues(__spreadValues({}, x), p) : x));
+      const p = { ...form, buy: +form.buy, sell: +form.sell, qty: +form.qty, alert: +form.alert };
+      if (modal === "new") setProducts((prev) => [...prev, { id: genId(), ...p }]);
+      else setProducts((prev) => prev.map((x) => x.id === modal.id ? { ...x, ...p } : x));
       setModal(null);
     };
     return /* @__PURE__ */ React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 16 } }, /* @__PURE__ */ React.createElement("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "center" } }, /* @__PURE__ */ React.createElement("h1", { style: { margin: 0, fontSize: 22, fontWeight: 900, color: T.gold } }, "\u{1F576}\uFE0F Catalogue produits"), /* @__PURE__ */ React.createElement(Btn, { onClick: () => {
@@ -928,10 +880,10 @@ ${sale.payment === "Cr\xE9dit client" ? `<div class="cr">\u26A0\uFE0F Reste d\xF
     } }, "+ Nouveau produit")), /* @__PURE__ */ React.createElement(Card, { style: { padding: 0, overflow: "hidden" } }, /* @__PURE__ */ React.createElement("div", { style: { overflowX: "auto" } }, /* @__PURE__ */ React.createElement("table", { style: { width: "100%", borderCollapse: "collapse", fontSize: 12 } }, /* @__PURE__ */ React.createElement("thead", null, /* @__PURE__ */ React.createElement("tr", { style: { background: T.elevated } }, ["Produit", "Cat\xE9gorie", "P. Achat", "P. Vente", "Marge unit.", "Stock", "Statut", ""].map((c) => /* @__PURE__ */ React.createElement(TH, { key: c, c })))), /* @__PURE__ */ React.createElement("tbody", null, products.map((p, i) => {
       const mg = p.sell - p.buy, pct = Math.round(mg / p.sell * 100), st = stS(p);
       return /* @__PURE__ */ React.createElement(TRow, { key: p.id, i }, /* @__PURE__ */ React.createElement(TD, null, /* @__PURE__ */ React.createElement("div", { style: { fontWeight: 700, color: T.text } }, p.name), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: T.muted } }, p.supplier)), /* @__PURE__ */ React.createElement(TD, { style: { color: T.muted } }, p.category), /* @__PURE__ */ React.createElement(TD, { style: { fontFamily: "monospace", color: T.muted } }, fmt(p.buy)), /* @__PURE__ */ React.createElement(TD, { style: { fontFamily: "monospace", fontWeight: 700 } }, fmt(p.sell)), /* @__PURE__ */ React.createElement(TD, null, /* @__PURE__ */ React.createElement("span", { style: { color: pct >= 30 ? T.success : pct >= 15 ? T.warning : T.danger, fontWeight: 800 } }, fmt(mg)), /* @__PURE__ */ React.createElement("span", { style: { color: T.muted, fontSize: 10 } }, " (", pct, "%)")), /* @__PURE__ */ React.createElement(TD, { style: { fontWeight: 700 } }, p.qty, /* @__PURE__ */ React.createElement("span", { style: { color: T.muted, fontSize: 10 } }, " / ", p.alert)), /* @__PURE__ */ React.createElement(TD, null, /* @__PURE__ */ React.createElement(Badge, { label: stL[st], color: stC[st] })), /* @__PURE__ */ React.createElement(TD, null, /* @__PURE__ */ React.createElement(Btn, { small: true, variant: "ghost", onClick: () => {
-        setForm(__spreadValues({}, p));
+        setForm({ ...p });
         setModal(p);
       } }, "\u270F\uFE0F")));
-    }))))), modal && /* @__PURE__ */ React.createElement(Modal, { title: modal === "new" ? "\u2795 Nouveau produit" : "\u270F\uFE0F Modifier", onClose: () => setModal(null) }, /* @__PURE__ */ React.createElement("div", { style: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 13 } }, /* @__PURE__ */ React.createElement("div", { style: { gridColumn: "1/-1" } }, /* @__PURE__ */ React.createElement(Input, { label: "Nom", value: form.name, onChange: (e) => setForm((f) => __spreadProps(__spreadValues({}, f), { name: e.target.value })) })), /* @__PURE__ */ React.createElement(Sel, { label: "Cat\xE9gorie", value: form.category, onChange: (e) => setForm((f) => __spreadProps(__spreadValues({}, f), { category: e.target.value })), options: CATEGORIES }), /* @__PURE__ */ React.createElement(Input, { label: "Fournisseur", value: form.supplier, onChange: (e) => setForm((f) => __spreadProps(__spreadValues({}, f), { supplier: e.target.value })) }), /* @__PURE__ */ React.createElement(Input, { label: "Prix achat (GNF)", type: "number", value: form.buy, onChange: (e) => setForm((f) => __spreadProps(__spreadValues({}, f), { buy: e.target.value })) }), /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement(Input, { label: "Prix vente (GNF)", type: "number", value: form.sell, onChange: (e) => setForm((f) => __spreadProps(__spreadValues({}, f), { sell: e.target.value })) }), form.buy && form.sell && /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: T.success, marginTop: 3, fontWeight: 700 } }, "Marge : ", fmt(form.sell - form.buy), " (", Math.round((form.sell - form.buy) / form.sell * 100), "%)")), /* @__PURE__ */ React.createElement(Input, { label: "Stock actuel", type: "number", value: form.qty, onChange: (e) => setForm((f) => __spreadProps(__spreadValues({}, f), { qty: e.target.value })) }), /* @__PURE__ */ React.createElement(Input, { label: "Seuil alerte", type: "number", value: form.alert, onChange: (e) => setForm((f) => __spreadProps(__spreadValues({}, f), { alert: e.target.value })) })), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", justifyContent: "flex-end", gap: 10, marginTop: 16 } }, /* @__PURE__ */ React.createElement(Btn, { variant: "ghost", onClick: () => setModal(null) }, "Annuler"), /* @__PURE__ */ React.createElement(Btn, { onClick: save2 }, "Enregistrer"))));
+    }))))), modal && /* @__PURE__ */ React.createElement(Modal, { title: modal === "new" ? "\u2795 Nouveau produit" : "\u270F\uFE0F Modifier", onClose: () => setModal(null) }, /* @__PURE__ */ React.createElement("div", { style: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 13 } }, /* @__PURE__ */ React.createElement("div", { style: { gridColumn: "1/-1" } }, /* @__PURE__ */ React.createElement(Input, { label: "Nom", value: form.name, onChange: (e) => setForm((f) => ({ ...f, name: e.target.value })) })), /* @__PURE__ */ React.createElement(Sel, { label: "Cat\xE9gorie", value: form.category, onChange: (e) => setForm((f) => ({ ...f, category: e.target.value })), options: CATEGORIES }), /* @__PURE__ */ React.createElement(Input, { label: "Fournisseur", value: form.supplier, onChange: (e) => setForm((f) => ({ ...f, supplier: e.target.value })) }), /* @__PURE__ */ React.createElement(Input, { label: "Prix achat (GNF)", type: "number", value: form.buy, onChange: (e) => setForm((f) => ({ ...f, buy: e.target.value })) }), /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement(Input, { label: "Prix vente (GNF)", type: "number", value: form.sell, onChange: (e) => setForm((f) => ({ ...f, sell: e.target.value })) }), form.buy && form.sell && /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: T.success, marginTop: 3, fontWeight: 700 } }, "Marge : ", fmt(form.sell - form.buy), " (", Math.round((form.sell - form.buy) / form.sell * 100), "%)")), /* @__PURE__ */ React.createElement(Input, { label: "Stock actuel", type: "number", value: form.qty, onChange: (e) => setForm((f) => ({ ...f, qty: e.target.value })) }), /* @__PURE__ */ React.createElement(Input, { label: "Seuil alerte", type: "number", value: form.alert, onChange: (e) => setForm((f) => ({ ...f, alert: e.target.value })) })), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", justifyContent: "flex-end", gap: 10, marginTop: 16 } }, /* @__PURE__ */ React.createElement(Btn, { variant: "ghost", onClick: () => setModal(null) }, "Annuler"), /* @__PURE__ */ React.createElement(Btn, { onClick: save2 }, "Enregistrer"))));
   }
   function ExpensesPage({ expenses, setExpenses }) {
     const [modal, setModal] = useState(false);
@@ -940,9 +892,9 @@ ${sale.payment === "Cr\xE9dit client" ? `<div class="cr">\u26A0\uFE0F Reste d\xF
     return /* @__PURE__ */ React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 16 } }, /* @__PURE__ */ React.createElement("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "center" } }, /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("h1", { style: { margin: 0, fontSize: 22, fontWeight: 900, color: T.gold } }, "\u{1F9FE} D\xE9penses"), /* @__PURE__ */ React.createElement("p", { style: { margin: "3px 0 0", color: T.muted, fontSize: 12 } }, "Total : ", /* @__PURE__ */ React.createElement("strong", { style: { color: T.danger } }, fmt(total)))), /* @__PURE__ */ React.createElement(Btn, { onClick: () => setModal(true) }, "+ Ajouter")), /* @__PURE__ */ React.createElement("div", { style: { display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(185px,1fr))", gap: 10 } }, DEP_TYPES.map((type) => {
       const t = expenses.filter((e) => e.type === type).reduce((s, e) => s + e.amount, 0);
       return t > 0 ? /* @__PURE__ */ React.createElement(Card, { key: type, style: { borderLeft: `3px solid ${T.warning}`, padding: "11px 14px" } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: T.muted, marginBottom: 2 } }, type.split(" /")[0]), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 16, fontWeight: 800, color: T.text } }, fmt(t))) : null;
-    })), /* @__PURE__ */ React.createElement(Card, { style: { padding: 0, overflow: "hidden" } }, /* @__PURE__ */ React.createElement("div", { style: { overflowX: "auto" } }, /* @__PURE__ */ React.createElement("table", { style: { width: "100%", borderCollapse: "collapse", fontSize: 12 } }, /* @__PURE__ */ React.createElement("thead", null, /* @__PURE__ */ React.createElement("tr", { style: { background: T.elevated } }, ["Date", "Type", "Montant", "Note", ""].map((c) => /* @__PURE__ */ React.createElement(TH, { key: c, c })))), /* @__PURE__ */ React.createElement("tbody", null, expenses.map((e, i) => /* @__PURE__ */ React.createElement(TRow, { key: e.id, i }, /* @__PURE__ */ React.createElement(TD, { style: { color: T.muted } }, e.date), /* @__PURE__ */ React.createElement(TD, null, /* @__PURE__ */ React.createElement(Badge, { label: e.type.split(" /")[0], color: T.warning })), /* @__PURE__ */ React.createElement(TD, { style: { fontWeight: 800, color: T.danger, fontFamily: "monospace" } }, fmt(e.amount)), /* @__PURE__ */ React.createElement(TD, { style: { color: T.muted } }, e.note || "\u2014"), /* @__PURE__ */ React.createElement(TD, null, /* @__PURE__ */ React.createElement(Btn, { small: true, variant: "danger", onClick: () => setExpenses((p) => p.filter((x) => x.id !== e.id)) }, "Suppr.")))))))), modal && /* @__PURE__ */ React.createElement(Modal, { title: "\u{1F9FE} Nouvelle d\xE9pense", onClose: () => setModal(false) }, /* @__PURE__ */ React.createElement("div", { style: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 13 } }, /* @__PURE__ */ React.createElement(Input, { label: "Date", type: "date", value: form.date, onChange: (e) => setForm((f) => __spreadProps(__spreadValues({}, f), { date: e.target.value })) }), /* @__PURE__ */ React.createElement(Sel, { label: "Type", value: form.type, onChange: (e) => setForm((f) => __spreadProps(__spreadValues({}, f), { type: e.target.value })), options: DEP_TYPES }), /* @__PURE__ */ React.createElement(Input, { label: "Montant (GNF)", type: "number", value: form.amount, onChange: (e) => setForm((f) => __spreadProps(__spreadValues({}, f), { amount: e.target.value })) }), /* @__PURE__ */ React.createElement(Input, { label: "Note", value: form.note, onChange: (e) => setForm((f) => __spreadProps(__spreadValues({}, f), { note: e.target.value })) })), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", justifyContent: "flex-end", gap: 10, marginTop: 16 } }, /* @__PURE__ */ React.createElement(Btn, { variant: "ghost", onClick: () => setModal(false) }, "Annuler"), /* @__PURE__ */ React.createElement(Btn, { onClick: () => {
+    })), /* @__PURE__ */ React.createElement(Card, { style: { padding: 0, overflow: "hidden" } }, /* @__PURE__ */ React.createElement("div", { style: { overflowX: "auto" } }, /* @__PURE__ */ React.createElement("table", { style: { width: "100%", borderCollapse: "collapse", fontSize: 12 } }, /* @__PURE__ */ React.createElement("thead", null, /* @__PURE__ */ React.createElement("tr", { style: { background: T.elevated } }, ["Date", "Type", "Montant", "Note", ""].map((c) => /* @__PURE__ */ React.createElement(TH, { key: c, c })))), /* @__PURE__ */ React.createElement("tbody", null, expenses.map((e, i) => /* @__PURE__ */ React.createElement(TRow, { key: e.id, i }, /* @__PURE__ */ React.createElement(TD, { style: { color: T.muted } }, e.date), /* @__PURE__ */ React.createElement(TD, null, /* @__PURE__ */ React.createElement(Badge, { label: e.type.split(" /")[0], color: T.warning })), /* @__PURE__ */ React.createElement(TD, { style: { fontWeight: 800, color: T.danger, fontFamily: "monospace" } }, fmt(e.amount)), /* @__PURE__ */ React.createElement(TD, { style: { color: T.muted } }, e.note || "\u2014"), /* @__PURE__ */ React.createElement(TD, null, /* @__PURE__ */ React.createElement(Btn, { small: true, variant: "danger", onClick: () => setExpenses((p) => p.filter((x) => x.id !== e.id)) }, "Suppr.")))))))), modal && /* @__PURE__ */ React.createElement(Modal, { title: "\u{1F9FE} Nouvelle d\xE9pense", onClose: () => setModal(false) }, /* @__PURE__ */ React.createElement("div", { style: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 13 } }, /* @__PURE__ */ React.createElement(Input, { label: "Date", type: "date", value: form.date, onChange: (e) => setForm((f) => ({ ...f, date: e.target.value })) }), /* @__PURE__ */ React.createElement(Sel, { label: "Type", value: form.type, onChange: (e) => setForm((f) => ({ ...f, type: e.target.value })), options: DEP_TYPES }), /* @__PURE__ */ React.createElement(Input, { label: "Montant (GNF)", type: "number", value: form.amount, onChange: (e) => setForm((f) => ({ ...f, amount: e.target.value })) }), /* @__PURE__ */ React.createElement(Input, { label: "Note", value: form.note, onChange: (e) => setForm((f) => ({ ...f, note: e.target.value })) })), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", justifyContent: "flex-end", gap: 10, marginTop: 16 } }, /* @__PURE__ */ React.createElement(Btn, { variant: "ghost", onClick: () => setModal(false) }, "Annuler"), /* @__PURE__ */ React.createElement(Btn, { onClick: () => {
       if (!form.amount) return;
-      setExpenses((p) => [__spreadProps(__spreadValues({ id: genId() }, form), { amount: +form.amount }), ...p]);
+      setExpenses((p) => [{ id: genId(), ...form, amount: +form.amount }, ...p]);
       setForm({ date: today(), type: DEP_TYPES[0], amount: "", note: "" });
       setModal(false);
     }, disabled: !form.amount }, "Enregistrer"))));
@@ -997,12 +949,12 @@ ${sale.payment === "Cr\xE9dit client" ? `<div class="cr">\u26A0\uFE0F Reste d\xF
         }
       },
       t.l
-    ))), view === "both" ? /* @__PURE__ */ React.createElement("div", { style: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 } }, /* @__PURE__ */ React.createElement(Card, { style: { padding: 0, overflow: "hidden" } }, /* @__PURE__ */ React.createElement("div", { style: { padding: "11px 14px", borderBottom: `1px solid ${T.border}`, display: "flex", justifyContent: "space-between", alignItems: "center" } }, /* @__PURE__ */ React.createElement("span", { style: { fontSize: 13, fontWeight: 700, color: T.info } }, "\u{1F465} Ils me doivent"), /* @__PURE__ */ React.createElement("span", { style: { fontSize: 11, color: T.muted } }, fmt(totalA))), /* @__PURE__ */ React.createElement(DebtTable, { list: clients, type: "client" })), /* @__PURE__ */ React.createElement(Card, { style: { padding: 0, overflow: "hidden" } }, /* @__PURE__ */ React.createElement("div", { style: { padding: "11px 14px", borderBottom: `1px solid ${T.border}`, display: "flex", justifyContent: "space-between", alignItems: "center" } }, /* @__PURE__ */ React.createElement("span", { style: { fontSize: 13, fontWeight: 700, color: T.danger } }, "\u{1F3ED} Je dois"), /* @__PURE__ */ React.createElement("span", { style: { fontSize: 11, color: T.muted } }, fmt(totalB))), /* @__PURE__ */ React.createElement(DebtTable, { list: suppliers, type: "supplier" }))) : /* @__PURE__ */ React.createElement(Card, { style: { padding: 0, overflow: "hidden" } }, /* @__PURE__ */ React.createElement("div", { style: { padding: "11px 14px", borderBottom: `1px solid ${T.border}`, fontSize: 13, fontWeight: 700, color: view === "client" ? T.info : T.danger } }, view === "client" ? "\u{1F465} Cr\xE9ances clients \u2014 ils me doivent" : "\u{1F3ED} Dettes fournisseurs \u2014 je dois"), /* @__PURE__ */ React.createElement(DebtTable, { list: view === "client" ? clients : suppliers, type: view })), modal && /* @__PURE__ */ React.createElement(Modal, { title: formType === "client" ? "\u{1F465} Nouvelle cr\xE9ance client" : "\u{1F3ED} Nouvelle dette fournisseur", onClose: () => setModal(false) }, /* @__PURE__ */ React.createElement("div", { style: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 13 } }, /* @__PURE__ */ React.createElement(Input, { label: formType === "client" ? "Nom du client" : "Nom du fournisseur", value: form.name, onChange: (e) => setForm((f) => __spreadProps(__spreadValues({}, f), { name: e.target.value })), placeholder: formType === "client" ? "Mamadou Bah\u2026" : "Dubai Scents\u2026" }), /* @__PURE__ */ React.createElement(Input, { label: "Montant d\xFB (GNF)", type: "number", value: form.amount, onChange: (e) => setForm((f) => __spreadProps(__spreadValues({}, f), { amount: e.target.value })) }), /* @__PURE__ */ React.createElement(Input, { label: "Date \xE9ch\xE9ance", type: "date", value: form.due_date, onChange: (e) => setForm((f) => __spreadProps(__spreadValues({}, f), { due_date: e.target.value })) }), /* @__PURE__ */ React.createElement(Input, { label: "Note", value: form.note, onChange: (e) => setForm((f) => __spreadProps(__spreadValues({}, f), { note: e.target.value })), placeholder: "Raison, r\xE9f\xE9rence\u2026" })), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", justifyContent: "flex-end", gap: 10, marginTop: 16 } }, /* @__PURE__ */ React.createElement(Btn, { variant: "ghost", onClick: () => setModal(false) }, "Annuler"), /* @__PURE__ */ React.createElement(
+    ))), view === "both" ? /* @__PURE__ */ React.createElement("div", { style: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 } }, /* @__PURE__ */ React.createElement(Card, { style: { padding: 0, overflow: "hidden" } }, /* @__PURE__ */ React.createElement("div", { style: { padding: "11px 14px", borderBottom: `1px solid ${T.border}`, display: "flex", justifyContent: "space-between", alignItems: "center" } }, /* @__PURE__ */ React.createElement("span", { style: { fontSize: 13, fontWeight: 700, color: T.info } }, "\u{1F465} Ils me doivent"), /* @__PURE__ */ React.createElement("span", { style: { fontSize: 11, color: T.muted } }, fmt(totalA))), /* @__PURE__ */ React.createElement(DebtTable, { list: clients, type: "client" })), /* @__PURE__ */ React.createElement(Card, { style: { padding: 0, overflow: "hidden" } }, /* @__PURE__ */ React.createElement("div", { style: { padding: "11px 14px", borderBottom: `1px solid ${T.border}`, display: "flex", justifyContent: "space-between", alignItems: "center" } }, /* @__PURE__ */ React.createElement("span", { style: { fontSize: 13, fontWeight: 700, color: T.danger } }, "\u{1F3ED} Je dois"), /* @__PURE__ */ React.createElement("span", { style: { fontSize: 11, color: T.muted } }, fmt(totalB))), /* @__PURE__ */ React.createElement(DebtTable, { list: suppliers, type: "supplier" }))) : /* @__PURE__ */ React.createElement(Card, { style: { padding: 0, overflow: "hidden" } }, /* @__PURE__ */ React.createElement("div", { style: { padding: "11px 14px", borderBottom: `1px solid ${T.border}`, fontSize: 13, fontWeight: 700, color: view === "client" ? T.info : T.danger } }, view === "client" ? "\u{1F465} Cr\xE9ances clients \u2014 ils me doivent" : "\u{1F3ED} Dettes fournisseurs \u2014 je dois"), /* @__PURE__ */ React.createElement(DebtTable, { list: view === "client" ? clients : suppliers, type: view })), modal && /* @__PURE__ */ React.createElement(Modal, { title: formType === "client" ? "\u{1F465} Nouvelle cr\xE9ance client" : "\u{1F3ED} Nouvelle dette fournisseur", onClose: () => setModal(false) }, /* @__PURE__ */ React.createElement("div", { style: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 13 } }, /* @__PURE__ */ React.createElement(Input, { label: formType === "client" ? "Nom du client" : "Nom du fournisseur", value: form.name, onChange: (e) => setForm((f) => ({ ...f, name: e.target.value })), placeholder: formType === "client" ? "Mamadou Bah\u2026" : "Dubai Scents\u2026" }), /* @__PURE__ */ React.createElement(Input, { label: "Montant d\xFB (GNF)", type: "number", value: form.amount, onChange: (e) => setForm((f) => ({ ...f, amount: e.target.value })) }), /* @__PURE__ */ React.createElement(Input, { label: "Date \xE9ch\xE9ance", type: "date", value: form.due_date, onChange: (e) => setForm((f) => ({ ...f, due_date: e.target.value })) }), /* @__PURE__ */ React.createElement(Input, { label: "Note", value: form.note, onChange: (e) => setForm((f) => ({ ...f, note: e.target.value })), placeholder: "Raison, r\xE9f\xE9rence\u2026" })), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", justifyContent: "flex-end", gap: 10, marginTop: 16 } }, /* @__PURE__ */ React.createElement(Btn, { variant: "ghost", onClick: () => setModal(false) }, "Annuler"), /* @__PURE__ */ React.createElement(
       Btn,
       {
         onClick: () => {
           if (!form.name || !form.amount) return;
-          setDebts((p) => [__spreadProps(__spreadValues({ id: genId(), type: formType }, form), { amount: +form.amount, paid: 0 }), ...p]);
+          setDebts((p) => [{ id: genId(), type: formType, ...form, amount: +form.amount, paid: 0 }, ...p]);
           setForm({ name: "", amount: "", due_date: "", note: "" });
           setModal(false);
         },
@@ -1011,7 +963,7 @@ ${sale.payment === "Cr\xE9dit client" ? `<div class="cr">\u26A0\uFE0F Reste d\xF
       "Enregistrer"
     ))), payM && /* @__PURE__ */ React.createElement(Modal, { title: payM.type === "client" ? "\u{1F4B5} Encaisser une cr\xE9ance" : "\u{1F4B8} Payer un fournisseur", onClose: () => setPayM(null), width: 360 }, /* @__PURE__ */ React.createElement("div", { style: { background: T.elevated, borderRadius: 10, padding: "12px 14px", marginBottom: 14 } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 12, color: T.muted, marginBottom: 4 } }, payM.type === "client" ? "\u{1F465} Client" : "\u{1F3ED} Fournisseur"), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 15, fontWeight: 800, color: T.text, marginBottom: 4 } }, payM.name), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 20, fontSize: 12 } }, /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("div", { style: { color: T.muted, fontSize: 10 } }, "Total"), /* @__PURE__ */ React.createElement("div", { style: { fontWeight: 700 } }, fmt(payM.amount))), /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("div", { style: { color: T.muted, fontSize: 10 } }, "D\xE9j\xE0 pay\xE9"), /* @__PURE__ */ React.createElement("div", { style: { fontWeight: 700, color: T.success } }, fmt(payM.paid))), /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("div", { style: { color: T.muted, fontSize: 10 } }, "Reste d\xFB"), /* @__PURE__ */ React.createElement("div", { style: { fontWeight: 800, color: T.danger } }, fmt(payM.amount - payM.paid))))), /* @__PURE__ */ React.createElement(Input, { label: payM.type === "client" ? "Montant encaiss\xE9 (GNF)" : "Montant pay\xE9 (GNF)", type: "number", value: payAmt, onChange: (e) => setPayAmt(e.target.value), placeholder: `Max : ${fmt(payM.amount - payM.paid)}` }), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", justifyContent: "flex-end", gap: 10, marginTop: 16 } }, /* @__PURE__ */ React.createElement(Btn, { variant: "ghost", onClick: () => setPayM(null) }, "Annuler"), /* @__PURE__ */ React.createElement(Btn, { onClick: () => {
       if (!payAmt) return;
-      setDebts((p) => p.map((d) => d.id === payM.id ? __spreadProps(__spreadValues({}, d), { paid: Math.min(d.paid + +payAmt, d.amount) }) : d));
+      setDebts((p) => p.map((d) => d.id === payM.id ? { ...d, paid: Math.min(d.paid + +payAmt, d.amount) } : d));
       setPayM(null);
       setPayAmt("");
     }, disabled: !payAmt }, payM.type === "client" ? "\u2705 Encaisser" : "\u2705 Confirmer le paiement"))));
@@ -1061,7 +1013,7 @@ ${sale.payment === "Cr\xE9dit client" ? `<div class="cr">\u26A0\uFE0F Reste d\xF
         map[it.name].cogs += it.qty * it.buy;
         map[it.name].qty += it.qty;
       }));
-      return Object.values(map).map((p) => __spreadProps(__spreadValues({}, p), { marge: p.ca - p.cogs, pct: p.ca ? Math.round((p.ca - p.cogs) / p.ca * 100) : 0 })).sort((a, b) => b.marge - a.marge);
+      return Object.values(map).map((p) => ({ ...p, marge: p.ca - p.cogs, pct: p.ca ? Math.round((p.ca - p.cogs) / p.ca * 100) : 0 })).sort((a, b) => b.marge - a.marge);
     }, [salesF]);
     const parPaiement = useMemo(() => {
       const map = {};
@@ -1108,7 +1060,7 @@ ${sale.payment === "Cr\xE9dit client" ? `<div class="cr">\u26A0\uFE0F Reste d\xF
       { icon: "\u{1F6D2}", l: "Nb de ventes", v: salesF.length, c: T.muted },
       { icon: "\u{1F3AF}", l: "Panier moyen", v: salesF.length ? fmt(Math.round(ca / salesF.length)) : fmt(0), c: T.info },
       { icon: benefice >= 0 ? "\u2705" : "\u{1F534}", l: "B\xE9n\xE9fice net", v: fmt(benefice), c: benefice >= 0 ? T.success : T.danger, s: "Marge\u2212D\xE9p.\u2212Dettes fourn." }
-    ].map((k) => /* @__PURE__ */ React.createElement(Card, { key: k.l, style: { borderTop: `3px solid ${k.c}`, padding: "11px 13px" } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 17, marginBottom: 3 } }, k.icon), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 15, fontWeight: 800, color: T.text } }, k.v), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: T.muted, marginTop: 2 } }, k.l), k.s && /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: k.c, fontWeight: 700, marginTop: 2 } }, k.s)))), bestDay && worstDay && bestDay.date !== worstDay.date && /* @__PURE__ */ React.createElement("div", { style: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 13 } }, /* @__PURE__ */ React.createElement(Card, { style: { borderLeft: `4px solid ${T.success}`, padding: "11px 14px" } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: T.success, fontWeight: 700, marginBottom: 5 } }, "\u{1F3C6} MEILLEURE JOURN\xC9E"), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 17, fontWeight: 900, color: T.text } }, bestDay.date), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 13, color: T.gold, fontWeight: 700 } }, fmt(bestDay.ca)), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 11, color: T.success } }, "Marge : ", fmt(bestDay.marge))), /* @__PURE__ */ React.createElement(Card, { style: { borderLeft: `4px solid ${T.warning}`, padding: "11px 14px" } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: T.warning, fontWeight: 700, marginBottom: 5 } }, "\u{1F4C9} JOURN\xC9E LA PLUS FAIBLE"), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 17, fontWeight: 900, color: T.text } }, worstDay.date), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 13, color: T.gold, fontWeight: 700 } }, fmt(worstDay.ca)), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 11, color: T.warning } }, "Marge : ", fmt(worstDay.marge)))), parJour.length > 0 && /* @__PURE__ */ React.createElement(Card, null, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 12, fontWeight: 700, color: T.text, marginBottom: 12 } }, "CA et Marge par jour"), /* @__PURE__ */ React.createElement("div", { style: { background: T.elevated, borderRadius: 10, padding: 20, textAlign: "center", color: T.muted, fontSize: 12 } }, "\u{1F4CA} Graphique disponible sur desktop")), /* @__PURE__ */ React.createElement(Card, { style: { padding: 0, overflow: "hidden" } }, /* @__PURE__ */ React.createElement("div", { style: { padding: "11px 14px", borderBottom: `1px solid ${T.border}`, fontSize: 12, fontWeight: 700, color: T.text } }, "Performance par produit"), parProduit.length === 0 ? /* @__PURE__ */ React.createElement("div", { style: { padding: 28, textAlign: "center", color: T.muted } }, "Aucune vente sur cette p\xE9riode") : /* @__PURE__ */ React.createElement("div", { style: { overflowX: "auto" } }, /* @__PURE__ */ React.createElement("table", { style: { width: "100%", borderCollapse: "collapse", fontSize: 12 } }, /* @__PURE__ */ React.createElement("thead", null, /* @__PURE__ */ React.createElement("tr", { style: { background: T.elevated } }, ["Produit", "Qt\xE9", "CA", "Co\xFBt", "Marge", "Taux", "Part CA"].map((c) => /* @__PURE__ */ React.createElement(TH, { key: c, c })))), /* @__PURE__ */ React.createElement("tbody", null, parProduit.map((p, i) => {
+    ].map((k) => /* @__PURE__ */ React.createElement(Card, { key: k.l, style: { borderTop: `3px solid ${k.c}`, padding: "11px 13px" } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 17, marginBottom: 3 } }, k.icon), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 15, fontWeight: 800, color: T.text } }, k.v), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: T.muted, marginTop: 2 } }, k.l), k.s && /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: k.c, fontWeight: 700, marginTop: 2 } }, k.s)))), bestDay && worstDay && bestDay.date !== worstDay.date && /* @__PURE__ */ React.createElement("div", { style: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 13 } }, /* @__PURE__ */ React.createElement(Card, { style: { borderLeft: `4px solid ${T.success}`, padding: "11px 14px" } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: T.success, fontWeight: 700, marginBottom: 5 } }, "\u{1F3C6} MEILLEURE JOURN\xC9E"), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 17, fontWeight: 900, color: T.text } }, bestDay.date), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 13, color: T.gold, fontWeight: 700 } }, fmt(bestDay.ca)), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 11, color: T.success } }, "Marge : ", fmt(bestDay.marge))), /* @__PURE__ */ React.createElement(Card, { style: { borderLeft: `4px solid ${T.warning}`, padding: "11px 14px" } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: T.warning, fontWeight: 700, marginBottom: 5 } }, "\u{1F4C9} JOURN\xC9E LA PLUS FAIBLE"), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 17, fontWeight: 900, color: T.text } }, worstDay.date), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 13, color: T.gold, fontWeight: 700 } }, fmt(worstDay.ca)), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 11, color: T.warning } }, "Marge : ", fmt(worstDay.marge)))), parJour.length > 0 && /* @__PURE__ */ React.createElement(Card, null, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 12, fontWeight: 700, color: T.text, marginBottom: 12 } }, "CA et Marge par jour"), /* @__PURE__ */ React.createElement(ResponsiveContainer, { width: "100%", height: 175 }, /* @__PURE__ */ React.createElement(BarChart, { data: parJour, barGap: 2 }, /* @__PURE__ */ React.createElement(CartesianGrid, { strokeDasharray: "3 3", stroke: T.border, vertical: false }), /* @__PURE__ */ React.createElement(XAxis, { dataKey: "date", ...axisP }), /* @__PURE__ */ React.createElement(YAxis, { tickFormatter: fmtK, ...axisP }), /* @__PURE__ */ React.createElement(Tooltip, { formatter: (v, n) => [fmt(v), n === "ca" ? "CA" : "Marge"], contentStyle: tooltipSt }), /* @__PURE__ */ React.createElement(Legend, { wrapperStyle: { fontSize: 11, color: T.muted } }), /* @__PURE__ */ React.createElement(Bar, { dataKey: "ca", name: "CA", fill: T.gold, radius: [3, 3, 0, 0] }), /* @__PURE__ */ React.createElement(Bar, { dataKey: "marge", name: "Marge", fill: T.success, radius: [3, 3, 0, 0] })))), /* @__PURE__ */ React.createElement(Card, { style: { padding: 0, overflow: "hidden" } }, /* @__PURE__ */ React.createElement("div", { style: { padding: "11px 14px", borderBottom: `1px solid ${T.border}`, fontSize: 12, fontWeight: 700, color: T.text } }, "Performance par produit"), parProduit.length === 0 ? /* @__PURE__ */ React.createElement("div", { style: { padding: 28, textAlign: "center", color: T.muted } }, "Aucune vente sur cette p\xE9riode") : /* @__PURE__ */ React.createElement("div", { style: { overflowX: "auto" } }, /* @__PURE__ */ React.createElement("table", { style: { width: "100%", borderCollapse: "collapse", fontSize: 12 } }, /* @__PURE__ */ React.createElement("thead", null, /* @__PURE__ */ React.createElement("tr", { style: { background: T.elevated } }, ["Produit", "Qt\xE9", "CA", "Co\xFBt", "Marge", "Taux", "Part CA"].map((c) => /* @__PURE__ */ React.createElement(TH, { key: c, c })))), /* @__PURE__ */ React.createElement("tbody", null, parProduit.map((p, i) => {
       const part = ca ? Math.round(p.ca / ca * 100) : 0;
       return /* @__PURE__ */ React.createElement(TRow, { key: p.name, i }, /* @__PURE__ */ React.createElement(TD, { style: { fontWeight: 700, color: T.text } }, p.name), /* @__PURE__ */ React.createElement(TD, { style: { textAlign: "center" } }, p.qty), /* @__PURE__ */ React.createElement(TD, { style: { fontFamily: "monospace", fontWeight: 700 } }, fmt(p.ca)), /* @__PURE__ */ React.createElement(TD, { style: { fontFamily: "monospace", color: T.muted } }, fmt(p.cogs)), /* @__PURE__ */ React.createElement(TD, { style: { fontFamily: "monospace", fontWeight: 800, color: p.marge >= 0 ? T.success : T.danger } }, fmt(p.marge)), /* @__PURE__ */ React.createElement(TD, null, /* @__PURE__ */ React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 4 } }, /* @__PURE__ */ React.createElement("div", { style: { width: 44, background: T.border, borderRadius: 10, height: 5 } }, /* @__PURE__ */ React.createElement("div", { style: { width: `${Math.min(p.pct, 100)}%`, background: p.pct >= 40 ? T.success : p.pct >= 20 ? T.warning : T.danger, height: 5, borderRadius: 10 } })), /* @__PURE__ */ React.createElement("span", { style: { fontSize: 10, fontWeight: 700, color: p.pct >= 40 ? T.success : p.pct >= 20 ? T.warning : T.danger } }, p.pct, "%"))), /* @__PURE__ */ React.createElement(TD, null, /* @__PURE__ */ React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 4 } }, /* @__PURE__ */ React.createElement("div", { style: { width: 36, background: T.border, borderRadius: 10, height: 5 } }, /* @__PURE__ */ React.createElement("div", { style: { width: `${part}%`, background: T.gold, height: 5, borderRadius: 10 } })), /* @__PURE__ */ React.createElement("span", { style: { fontSize: 10, color: T.gold } }, part, "%"))));
     }), /* @__PURE__ */ React.createElement("tr", { style: { background: T.elevated, fontWeight: 800 } }, /* @__PURE__ */ React.createElement(TD, { style: { color: T.gold } }, "TOTAL"), /* @__PURE__ */ React.createElement(TD, { style: { textAlign: "center" } }, salesF.reduce((s, v) => s + v.items.reduce((a, it) => a + it.qty, 0), 0)), /* @__PURE__ */ React.createElement(TD, { style: { fontFamily: "monospace", color: T.gold } }, fmt(ca)), /* @__PURE__ */ React.createElement(TD, { style: { fontFamily: "monospace", color: T.muted } }, fmt(cogs)), /* @__PURE__ */ React.createElement(TD, { style: { fontFamily: "monospace", color: T.success } }, fmt(marge)), /* @__PURE__ */ React.createElement(TD, { style: { color: T.success } }, margePct, "%"), /* @__PURE__ */ React.createElement(TD, { style: { color: T.gold } }, "100%")))))), /* @__PURE__ */ React.createElement(Card, null, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 12, fontWeight: 700, color: T.text, marginBottom: 13 } }, "R\xE9partition des modes de paiement"), parPaiement.length === 0 ? /* @__PURE__ */ React.createElement("div", { style: { color: T.muted, fontSize: 12 } }, "Aucune donn\xE9e") : parPaiement.map((p) => {
@@ -1132,10 +1084,10 @@ ${sale.payment === "Cr\xE9dit client" ? `<div class="cr">\u26A0\uFE0F Reste d\xF
     })), /* @__PURE__ */ React.createElement(Card, { style: { padding: 0, overflow: "hidden" } }, /* @__PURE__ */ React.createElement("div", { style: { overflowX: "auto" } }, /* @__PURE__ */ React.createElement("table", { style: { width: "100%", borderCollapse: "collapse", fontSize: 12 } }, /* @__PURE__ */ React.createElement("thead", null, /* @__PURE__ */ React.createElement("tr", { style: { background: T.elevated } }, ["Client", "T\xE9l\xE9phone", "Fid\xE9lit\xE9", "Total d\xE9pens\xE9", "Achats", "Derni\xE8re visite", "Note", ""].map((c) => /* @__PURE__ */ React.createElement(TH, { key: c, c })))), /* @__PURE__ */ React.createElement("tbody", null, clientStats.length === 0 ? /* @__PURE__ */ React.createElement("tr", null, /* @__PURE__ */ React.createElement("td", { colSpan: 8, style: { padding: 28, textAlign: "center", color: T.muted } }, "Aucun client")) : clientStats.map((c, i) => /* @__PURE__ */ React.createElement(TRow, { key: c.id, i }, /* @__PURE__ */ React.createElement(TD, null, /* @__PURE__ */ React.createElement("div", { style: { fontWeight: 700, color: T.text } }, c.name), c.email && /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: T.muted } }, c.email)), /* @__PURE__ */ React.createElement(TD, { style: { color: T.muted } }, c.phone || "\u2014"), /* @__PURE__ */ React.createElement(TD, null, /* @__PURE__ */ React.createElement("span", { style: { background: nivColor[c.niveau] + "22", color: nivColor[c.niveau], padding: "3px 10px", borderRadius: 20, fontSize: 10, fontWeight: 800, border: `1px solid ${nivColor[c.niveau]}44` } }, c.niveau === "Or" ? "\u{1F947}" : c.niveau === "Argent" ? "\u{1F948}" : "\u{1F949}", " ", c.niveau)), /* @__PURE__ */ React.createElement(TD, { style: { fontFamily: "monospace", fontWeight: 800, color: T.gold } }, fmt(c.totalSpent)), /* @__PURE__ */ React.createElement(TD, { style: { textAlign: "center", fontWeight: 700 } }, c.salesCount), /* @__PURE__ */ React.createElement(TD, { style: { color: T.muted } }, c.lastVisit || "\u2014"), /* @__PURE__ */ React.createElement(TD, { style: { color: T.muted, maxWidth: 120, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" } }, c.note || "\u2014"), /* @__PURE__ */ React.createElement(TD, { style: { display: "flex", gap: 6 } }, /* @__PURE__ */ React.createElement(Btn, { small: true, variant: "ghost", onClick: () => setDetail(c) }, "\u{1F441} D\xE9tail"), /* @__PURE__ */ React.createElement(Btn, { small: true, variant: "ghost", onClick: () => {
       setForm({ name: c.name, phone: c.phone, email: c.email || "", note: c.note || "" });
       setModal(c);
-    } }, "\u270F\uFE0F")))))))), modal && /* @__PURE__ */ React.createElement(Modal, { title: modal === "new" ? "\u2795 Nouveau client" : "\u270F\uFE0F Modifier client", onClose: () => setModal(null) }, /* @__PURE__ */ React.createElement("div", { style: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 13 } }, /* @__PURE__ */ React.createElement("div", { style: { gridColumn: "1/-1" } }, /* @__PURE__ */ React.createElement(Input, { label: "Nom complet", value: form.name, onChange: (e) => setForm((f) => __spreadProps(__spreadValues({}, f), { name: e.target.value })), placeholder: "Mamadou Bah" })), /* @__PURE__ */ React.createElement(Input, { label: "T\xE9l\xE9phone", value: form.phone, onChange: (e) => setForm((f) => __spreadProps(__spreadValues({}, f), { phone: e.target.value })), placeholder: "620 00 00 00" }), /* @__PURE__ */ React.createElement(Input, { label: "Email (optionnel)", value: form.email, onChange: (e) => setForm((f) => __spreadProps(__spreadValues({}, f), { email: e.target.value })), placeholder: "email@\u2026" }), /* @__PURE__ */ React.createElement("div", { style: { gridColumn: "1/-1" } }, /* @__PURE__ */ React.createElement(Input, { label: "Note", value: form.note, onChange: (e) => setForm((f) => __spreadProps(__spreadValues({}, f), { note: e.target.value })), placeholder: "Pr\xE9f\xE9rences, remarques\u2026" }))), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", justifyContent: "flex-end", gap: 10, marginTop: 16 } }, /* @__PURE__ */ React.createElement(Btn, { variant: "ghost", onClick: () => setModal(null) }, "Annuler"), /* @__PURE__ */ React.createElement(Btn, { disabled: !form.name, onClick: () => {
+    } }, "\u270F\uFE0F")))))))), modal && /* @__PURE__ */ React.createElement(Modal, { title: modal === "new" ? "\u2795 Nouveau client" : "\u270F\uFE0F Modifier client", onClose: () => setModal(null) }, /* @__PURE__ */ React.createElement("div", { style: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 13 } }, /* @__PURE__ */ React.createElement("div", { style: { gridColumn: "1/-1" } }, /* @__PURE__ */ React.createElement(Input, { label: "Nom complet", value: form.name, onChange: (e) => setForm((f) => ({ ...f, name: e.target.value })), placeholder: "Mamadou Bah" })), /* @__PURE__ */ React.createElement(Input, { label: "T\xE9l\xE9phone", value: form.phone, onChange: (e) => setForm((f) => ({ ...f, phone: e.target.value })), placeholder: "620 00 00 00" }), /* @__PURE__ */ React.createElement(Input, { label: "Email (optionnel)", value: form.email, onChange: (e) => setForm((f) => ({ ...f, email: e.target.value })), placeholder: "email@\u2026" }), /* @__PURE__ */ React.createElement("div", { style: { gridColumn: "1/-1" } }, /* @__PURE__ */ React.createElement(Input, { label: "Note", value: form.note, onChange: (e) => setForm((f) => ({ ...f, note: e.target.value })), placeholder: "Pr\xE9f\xE9rences, remarques\u2026" }))), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", justifyContent: "flex-end", gap: 10, marginTop: 16 } }, /* @__PURE__ */ React.createElement(Btn, { variant: "ghost", onClick: () => setModal(null) }, "Annuler"), /* @__PURE__ */ React.createElement(Btn, { disabled: !form.name, onClick: () => {
       if (!form.name) return;
-      if (modal === "new") setClients((p) => [...p, __spreadValues({ id: genId() }, form)]);
-      else setClients((p) => p.map((c) => c.id === modal.id ? __spreadValues(__spreadValues({}, c), form) : c));
+      if (modal === "new") setClients((p) => [...p, { id: genId(), ...form }]);
+      else setClients((p) => p.map((c) => c.id === modal.id ? { ...c, ...form } : c));
       setModal(null);
     } }, "Enregistrer"))), detail && /* @__PURE__ */ React.createElement(Modal, { title: `\u{1F464} ${detail.name}`, onClose: () => setDetail(null), width: 580 }, /* @__PURE__ */ React.createElement("div", { style: { display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10, marginBottom: 18 } }, [
       { l: "Total d\xE9pens\xE9", v: fmt(detail.totalSpent), c: T.gold },
@@ -1282,23 +1234,11 @@ ${sale.payment === "Cr\xE9dit client" ? `<div class="cr">\u26A0\uFE0F Reste d\xF
   window.__App = App;
 })();
 
-</script>
-<script>
-log('<span class="info">⏳ Montage App...</span>');
-try {
-  if(!window.__App) throw new Error("window.__App non défini");
-  log('✅ App trouvée');
-  var rootEl = document.getElementById("root");
-  ReactDOM.createRoot(rootEl).render(React.createElement(window.__App));
-  log('✅ App montée — suppression log...');
-  setTimeout(function(){ 
-    var l = document.getElementById('log');
-    if(l) l.style.display='none';
-  }, 2000);
-} catch(e) {
-  log('<span class="err">❌ Montage: '+e.message+'</span>');
+try{
+  if(!window.__App)throw new Error("App non init");
+  ReactDOM.createRoot(document.getElementById("root")).render(React.createElement(window.__App));
+}catch(e){
+  document.getElementById("root").innerHTML="<div style='padding:30px;color:#FF6B7A;font-size:13px'>Erreur: "+e.message+"</div>";
   console.error(e);
 }
-</script>
-</body>
-</html>
+</script></body></html>
