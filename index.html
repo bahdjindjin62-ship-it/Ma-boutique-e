@@ -6,38 +6,48 @@
 <title>ÉLITE Boutique</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-body{background:#0B1120;font-family:system-ui,sans-serif;color:#F0F4FF}
+body{background:#0B1120;font-family:system-ui,sans-serif;color:#F0F4FF;padding:20px}
+#log{font-size:13px;line-height:2}
+.ok{color:#2ECC9A}.err{color:#FF6B7A}.info{color:#E2B96F}
 #root{min-height:100vh}
-#splash{position:fixed;inset:0;background:#0B1120;display:flex;flex-direction:column;
-align-items:center;justify-content:center;gap:14px;z-index:9999;transition:opacity .5s}
-.spin{width:40px;height:40px;border:3px solid #2E4070;border-top-color:#E2B96F;
-border-radius:50%;animation:spin 1s linear infinite}
-@keyframes spin{to{transform:rotate(360deg)}}
-::-webkit-scrollbar{width:5px}::-webkit-scrollbar-thumb{background:#2E4070;border-radius:10px}
+::-webkit-scrollbar{width:5px}
+::-webkit-scrollbar-thumb{background:#2E4070;border-radius:10px}
 select option{background:#1A2440;color:#F0F4FF}
 </style>
 </head>
 <body>
-<div id="splash">
-  <div style="font-size:30px;font-weight:900;color:#E2B96F;letter-spacing:3px">ÉLITE</div>
-  <div class="spin"></div>
-  <div id="st" style="color:#8899BB;font-size:13px">Chargement…</div>
+<div id="log">
+<div class="info">⏳ Chargement React...</div>
 </div>
 <div id="root"></div>
-
-<!-- React uniquement — tout le reste est inclus dans le bundle -->
-<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-
+<script src="https://unpkg.com/react@18/umd/react.production.min.js"
+  onload="log('✅ React OK')" onerror="log('❌ React ERREUR')"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"
+  onload="log('✅ ReactDOM OK')" onerror="log('❌ ReactDOM ERREUR')"></script>
 <script>
-var {useState,useMemo,useCallback,useEffect,useRef} = React;
-var Recharts = {}; var XLSX_ignored = {};
-var EliteApp = (() => {
+function log(msg) {
+  var d = document.getElementById('log');
+  if(d) { var p=document.createElement('div'); p.innerHTML=msg; d.appendChild(p); }
+  console.log(msg);
+}
+
+window.onerror = function(msg, src, line, col, err) {
+  log('<span class="err">❌ JS ERREUR ligne '+line+': '+msg+'</span>');
+  return false;
+};
+</script>
+<script>
+log('<span class="info">⏳ Initialisation bundle...</span>');
+try {
+  var {useState,useMemo,useCallback,useEffect,useRef} = React;
+  log('✅ Hooks React OK');
+} catch(e) { log('<span class="err">❌ Hooks: '+e.message+'</span>'); }
+</script>
+<script>
+var EliteBundle = (() => {
   var __defProp = Object.defineProperty;
   var __defProps = Object.defineProperties;
-  var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
   var __getOwnPropDescs = Object.getOwnPropertyDescriptors;
-  var __getOwnPropNames = Object.getOwnPropertyNames;
   var __getOwnPropSymbols = Object.getOwnPropertySymbols;
   var __hasOwnProp = Object.prototype.hasOwnProperty;
   var __propIsEnum = Object.prototype.propertyIsEnumerable;
@@ -66,25 +76,8 @@ var EliteApp = (() => {
       }
     return target;
   };
-  var __export = (target, all) => {
-    for (var name in all)
-      __defProp(target, name, { get: all[name], enumerable: true });
-  };
-  var __copyProps = (to, from, except, desc) => {
-    if (from && typeof from === "object" || typeof from === "function") {
-      for (let key of __getOwnPropNames(from))
-        if (!__hasOwnProp.call(to, key) && key !== except)
-          __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
-    }
-    return to;
-  };
-  var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
-  var app_nodeps_exports = {};
-  __export(app_nodeps_exports, {
-    default: () => App
-  });
-  var import_react = React;
-  var import_recharts = Recharts;
+  var import_recharts = {};
+  const { useState, useMemo, useCallback, useEffect } = React;
   const T = {
     bg: "#0B1120",
     surface: "#1A2440",
@@ -255,13 +248,13 @@ var EliteApp = (() => {
       const setter = typeof v === "function" ? (prev) => v(prev) : () => v;
       return setter;
     };
-    const [_init] = (0, import_react.useState)(() => init());
-    const [products, _setP] = (0, import_react.useState)(() => _init.products);
-    const [sales, _setS] = (0, import_react.useState)(() => _init.sales);
-    const [expenses, _setE] = (0, import_react.useState)(() => _init.expenses);
-    const [debts, _setD] = (0, import_react.useState)(() => _init.debts);
-    const [supplies, _setA] = (0, import_react.useState)(() => _init.supplies);
-    const [clients, _setC] = (0, import_react.useState)(() => _init.clients);
+    const [_init] = useState(() => init());
+    const [products, _setP] = useState(() => _init.products);
+    const [sales, _setS] = useState(() => _init.sales);
+    const [expenses, _setE] = useState(() => _init.expenses);
+    const [debts, _setD] = useState(() => _init.debts);
+    const [supplies, _setA] = useState(() => _init.supplies);
+    const [clients, _setC] = useState(() => _init.clients);
     const persist = (key, updater, setter) => {
       setter((prev) => {
         const next = typeof updater === "function" ? updater(prev) : updater;
@@ -270,14 +263,14 @@ var EliteApp = (() => {
         return next;
       });
     };
-    const setProducts = (0, import_react.useCallback)((v) => persist("products", v, _setP), []);
-    const setSales = (0, import_react.useCallback)((v) => persist("sales", v, _setS), []);
-    const setExpenses = (0, import_react.useCallback)((v) => persist("expenses", v, _setE), []);
-    const setDebts = (0, import_react.useCallback)((v) => persist("debts", v, _setD), []);
-    const setSupplies = (0, import_react.useCallback)((v) => persist("supplies", v, _setA), []);
-    const setClients = (0, import_react.useCallback)((v) => persist("clients", v, _setC), []);
-    const safeSales = (0, import_react.useMemo)(() => sales.filter((s) => s && Array.isArray(s.items)), [sales]);
-    const kpis = (0, import_react.useMemo)(() => {
+    const setProducts = useCallback((v) => persist("products", v, _setP), []);
+    const setSales = useCallback((v) => persist("sales", v, _setS), []);
+    const setExpenses = useCallback((v) => persist("expenses", v, _setE), []);
+    const setDebts = useCallback((v) => persist("debts", v, _setD), []);
+    const setSupplies = useCallback((v) => persist("supplies", v, _setA), []);
+    const setClients = useCallback((v) => persist("clients", v, _setC), []);
+    const safeSales = useMemo(() => sales.filter((s) => s && Array.isArray(s.items)), [sales]);
+    const kpis = useMemo(() => {
       const totalRevenue = safeSales.reduce((s, v) => s + saleTotal(v), 0);
       const totalCOGS = safeSales.reduce((s, v) => s + saleCOGS(v), 0);
       const grossProfit = totalRevenue - totalCOGS;
@@ -295,7 +288,7 @@ var EliteApp = (() => {
         netProfit: grossProfit - totalExpenses - supplierDebt
       };
     }, [safeSales, expenses, debts]);
-    const monthlyStats = (0, import_react.useMemo)(() => {
+    const monthlyStats = useMemo(() => {
       const now = /* @__PURE__ */ new Date();
       const data = {};
       for (let i = 11; i >= 0; i--) {
@@ -317,7 +310,7 @@ var EliteApp = (() => {
       Object.values(data).forEach((m) => m.profit = m.marge - m.dep);
       return Object.values(data);
     }, [safeSales, expenses]);
-    const monthComparison = (0, import_react.useMemo)(() => {
+    const monthComparison = useMemo(() => {
       const now = /* @__PURE__ */ new Date();
       const cm = now.getMonth(), cy = now.getFullYear();
       const pm = cm === 0 ? 11 : cm - 1, py = cm === 0 ? cy - 1 : cy;
@@ -343,7 +336,7 @@ var EliteApp = (() => {
         prevName: MOIS[pm]
       };
     }, [safeSales]);
-    const productMargins = (0, import_react.useMemo)(() => {
+    const productMargins = useMemo(() => {
       const map = {};
       safeSales.forEach((v) => {
         if (!v.items) return;
@@ -356,8 +349,8 @@ var EliteApp = (() => {
       });
       return Object.values(map).map((p) => __spreadProps(__spreadValues({}, p), { margin: p.revenue - p.cogs, pct: p.revenue ? Math.round((p.revenue - p.cogs) / p.revenue * 100) : 0 })).sort((a, b) => b.margin - a.margin);
     }, [safeSales]);
-    const needsReorder = (0, import_react.useMemo)(() => products.filter((p) => p.qty <= p.alert), [products]);
-    const clientStats = (0, import_react.useMemo)(() => {
+    const needsReorder = useMemo(() => products.filter((p) => p.qty <= p.alert), [products]);
+    const clientStats = useMemo(() => {
       return clients.map((c) => {
         var _a;
         const cSales = safeSales.filter((s) => s.client === c.name && s.status !== "annul\xE9e");
@@ -388,78 +381,20 @@ var EliteApp = (() => {
     };
   }
   function exportExcel({ sales, products, expenses, debts, supplies }) {
-    const wb = XLSX.utils.book_new();
-    const addSheet = (name, data) => XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(data), name);
-    addSheet("Ventes", [
-      ...sales.map((s) => ({
-        Date: s.date,
-        Articles: (s.items || []).map((it) => `${it.name} x${it.qty}`).join(" | "),
-        "CA (GNF)": saleTotal(s),
-        "Co\xFBt (GNF)": saleCOGS(s),
-        "Marge (GNF)": saleTotal(s) - saleCOGS(s),
-        "Taux%": saleTotal(s) ? Math.round((saleTotal(s) - saleCOGS(s)) / saleTotal(s) * 100) : 0,
-        "Remise (GNF)": s.remise || 0,
-        Paiement: s.payment,
-        Client: s.client || "\u2014",
-        Tel: s.clientPhone || "\u2014"
-      })),
-      { Date: "TOTAL", Articles: "", "CA (GNF)": sales.reduce((a, s) => a + saleTotal(s), 0), "Co\xFBt (GNF)": sales.reduce((a, s) => a + saleCOGS(s), 0), "Marge (GNF)": sales.reduce((a, s) => a + saleTotal(s) - saleCOGS(s), 0), "Taux%": "", "Remise (GNF)": sales.reduce((a, s) => a + (s.remise || 0), 0), Paiement: "", Client: "", Tel: "" }
-    ]);
-    addSheet("Produits", products.map((p) => ({
-      Produit: p.name,
-      Cat\u00E9gorie: p.category,
-      Fournisseur: p.supplier,
-      "Achat (GNF)": p.buy,
-      "Vente (GNF)": p.sell,
-      "Marge unit.": p.sell - p.buy,
-      "Taux%": Math.round((p.sell - p.buy) / p.sell * 100),
-      Stock: p.qty,
-      "Seuil alerte": p.alert,
-      "Val. stock achat": p.qty * p.buy,
-      "Val. stock vente": p.qty * p.sell,
-      Statut: p.qty === 0 ? "Rupture" : p.qty <= p.alert ? "Critique" : p.qty <= p.alert * 2 ? "Faible" : "OK"
-    })));
-    addSheet("D\xE9penses", [
-      ...expenses.map((e) => ({ Date: e.date, Type: e.type, "Montant (GNF)": e.amount, Note: e.note || "\u2014" })),
-      { Date: "TOTAL", Type: "", "Montant (GNF)": expenses.reduce((a, e) => a + e.amount, 0), Note: "" }
-    ]);
-    addSheet("Dettes & Cr\xE9ances", debts.map((d) => ({
-      Type: d.type === "client" ? "Cr\xE9ance client" : "Dette fournisseur",
-      Nom: d.name,
-      "Total (GNF)": d.amount,
-      "Pay\xE9 (GNF)": d.paid,
-      "Reste (GNF)": d.amount - d.paid,
-      \u00C9ch\u00E9ance: d.due_date || "\u2014",
-      Statut: d.paid >= d.amount ? "Sold\xE9" : d.paid > 0 ? "Partiel" : "Impay\xE9",
-      Note: d.note || "\u2014"
-    })));
-    addSheet("Approvisionnements", supplies.map((s) => ({
-      Date: s.date,
-      Fournisseur: s.supplier,
-      Produit: s.product_name,
-      Qt\u00E9: s.qty,
-      "P.U. (GNF)": s.unit_buy,
-      "Total (GNF)": s.total,
-      "Pay\xE9 (GNF)": s.paid,
-      "Reste (GNF)": s.total - s.paid,
-      Statut: s.status,
-      Note: s.note || "\u2014"
-    })));
-    const CA = sales.reduce((a, s) => a + saleTotal(s), 0), Mg = sales.reduce((a, s) => a + saleTotal(s) - saleCOGS(s), 0);
-    const Dep = expenses.reduce((a, e) => a + e.amount, 0), Df = debts.filter((d) => d.type === "supplier").reduce((a, d) => a + (d.amount - d.paid), 0);
-    addSheet("R\xE9sum\xE9 financier", [
-      { Indicateur: "Chiffre d'affaires total", "Valeur (GNF)": CA },
-      { Indicateur: "Marge brute totale", "Valeur (GNF)": Mg },
-      { Indicateur: "Taux de marge (%)", "Valeur (GNF)": CA ? Math.round(Mg / CA * 100) : 0 },
-      { Indicateur: "D\xE9penses totales", "Valeur (GNF)": Dep },
-      { Indicateur: "Dettes fournisseurs restantes", "Valeur (GNF)": Df },
-      { Indicateur: "B\xE9n\xE9fice net estim\xE9", "Valeur (GNF)": Mg - Dep - Df },
-      { Indicateur: "Cr\xE9ances clients", "Valeur (GNF)": debts.filter((d) => d.type === "client").reduce((a, d) => a + (d.amount - d.paid), 0) },
-      { Indicateur: "Nb ventes total", "Valeur (GNF)": sales.length },
-      { Indicateur: "Panier moyen", "Valeur (GNF)": sales.length ? Math.round(CA / sales.length) : 0 },
-      { Indicateur: "Export\xE9 le", "Valeur (GNF)": nowStr() }
-    ]);
-    XLSX.writeFile(wb, `EliteBoutique_${today()}.xlsx`);
+    const rows = ["Date,Articles,Total,Paiement,Client"];
+    sales.forEach((s) => {
+      const articles = (s.items || []).map((it) => it.name + "x" + it.qty).join("|");
+      const total = s.items ? s.items.reduce((a2, it) => a2 + it.qty * it.sell, 0) - (s.remise || 0) : 0;
+      rows.push([s.date, articles, total, s.payment, s.client || ""].join(","));
+    });
+    const blob = new Blob([rows.join("\n")], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "ventes.csv";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
   }
   function buildReceiptText(sale) {
     const total = saleTotal(sale), remise = sale.remise || 0;
@@ -596,8 +531,8 @@ ${sale.payment === "Cr\xE9dit client" ? `<div class="cr">\u26A0\uFE0F Reste d\xF
   const WA_ICON = /* @__PURE__ */ React.createElement("svg", { width: "16", height: "16", viewBox: "0 0 24 24", fill: "currentColor" }, /* @__PURE__ */ React.createElement("path", { d: "M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" }));
   function ReceiptModal({ sale, onClose }) {
     const total = saleTotal(sale), remise = sale.remise || 0;
-    const [phone, setPhone] = (0, import_react.useState)((sale.clientPhone || "").replace(/\s/g, ""));
-    const [copied, setCopied] = (0, import_react.useState)(false);
+    const [phone, setPhone] = useState((sale.clientPhone || "").replace(/\s/g, ""));
+    const [copied, setCopied] = useState(false);
     const waNum = phone.startsWith("00") ? phone.slice(2) : phone.startsWith("+") ? phone.slice(1) : "224" + phone;
     const waLink = `https://wa.me/${waNum}?text=${encodeURIComponent(buildReceiptText(sale))}`;
     const copyText = () => {
@@ -688,22 +623,22 @@ ${sale.payment === "Cr\xE9dit client" ? `<div class="cr">\u26A0\uFE0F Reste d\xF
       background: `linear-gradient(90deg,${T.gold},${T.purple})`,
       height: 7,
       borderRadius: 10
-    } })), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: T.muted, marginTop: 4 } }, mc.forecast ? Math.min(Math.round(mc.curCA / mc.forecast * 100), 100) : 0, "% de la pr\xE9vision atteint"))))), /* @__PURE__ */ React.createElement(Card, null, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 13, fontWeight: 700, color: T.text, marginBottom: 14 } }, "\xC9volution sur 12 mois"), /* @__PURE__ */ React.createElement(import_recharts.ResponsiveContainer, { width: "100%", height: 190 }, /* @__PURE__ */ React.createElement(import_recharts.BarChart, { data: monthlyStats, barGap: 2 }, /* @__PURE__ */ React.createElement(import_recharts.CartesianGrid, { strokeDasharray: "3 3", stroke: T.border, vertical: false }), /* @__PURE__ */ React.createElement(import_recharts.XAxis, __spreadValues({ dataKey: "label" }, axisP)), /* @__PURE__ */ React.createElement(import_recharts.YAxis, __spreadValues({ tickFormatter: fmtK }, axisP)), /* @__PURE__ */ React.createElement(import_recharts.Tooltip, { formatter: (v) => fmt(v), contentStyle: tooltipSt }), /* @__PURE__ */ React.createElement(import_recharts.Legend, { wrapperStyle: { fontSize: 11, color: T.muted } }), /* @__PURE__ */ React.createElement(import_recharts.Bar, { dataKey: "ca", name: "CA", fill: T.gold, radius: [3, 3, 0, 0] }), /* @__PURE__ */ React.createElement(import_recharts.Bar, { dataKey: "marge", name: "Marge brute", fill: T.success, radius: [3, 3, 0, 0] }), /* @__PURE__ */ React.createElement(import_recharts.Bar, { dataKey: "profit", name: "Profit net", fill: T.purple, radius: [3, 3, 0, 0] })))), /* @__PURE__ */ React.createElement("div", { style: { display: "grid", gridTemplateColumns: "1.3fr 1fr", gap: 16 } }, /* @__PURE__ */ React.createElement(Card, null, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 13, fontWeight: 700, color: T.text, marginBottom: 14 } }, "Top produits \u2014 Marge g\xE9n\xE9r\xE9e"), productMargins.slice(0, 5).map((p, i) => /* @__PURE__ */ React.createElement("div", { key: p.name, style: { display: "flex", alignItems: "center", gap: 10, marginBottom: 11 } }, /* @__PURE__ */ React.createElement("div", { style: { width: 22, height: 22, borderRadius: "50%", background: T.gold + "22", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, fontWeight: 800, color: T.gold } }, i + 1), /* @__PURE__ */ React.createElement("div", { style: { flex: 1, minWidth: 0 } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 12, fontWeight: 700, color: T.text, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" } }, p.name), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", justifyContent: "space-between", marginTop: 2 } }, /* @__PURE__ */ React.createElement("span", { style: { fontSize: 11, color: T.success, fontWeight: 700 } }, fmt(p.margin)), /* @__PURE__ */ React.createElement("span", { style: { fontSize: 10, color: T.muted } }, p.pct, "% \xB7 ", p.qty, " vendus")), /* @__PURE__ */ React.createElement("div", { style: { background: T.border, borderRadius: 10, height: 4, marginTop: 4 } }, /* @__PURE__ */ React.createElement("div", { style: { width: `${Math.min(p.pct, 100)}%`, background: p.pct >= 40 ? T.success : p.pct >= 20 ? T.warning : T.danger, height: 4, borderRadius: 10 } })))))), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 12 } }, /* @__PURE__ */ React.createElement(Card, { style: { borderLeft: `4px solid ${T.gold}`, padding: "12px 16px" } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, fontWeight: 700, color: T.gold, marginBottom: 6 } }, "\u{1F4D0} FORMULE B\xC9N\xC9FICE NET"), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: T.muted, fontFamily: "monospace", lineHeight: 2 } }, "CA \u2212 Achats \u2212 D\xE9penses \u2212 Dettes fourn.", /* @__PURE__ */ React.createElement("br", null), /* @__PURE__ */ React.createElement("span", { style: { color: kpis.netProfit >= 0 ? T.success : T.danger, fontWeight: 900, fontSize: 14 } }, "= ", fmt(kpis.netProfit)))), needsReorder.length > 0 && /* @__PURE__ */ React.createElement(Card, { style: { borderLeft: `4px solid ${T.danger}`, padding: "12px 16px" } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, fontWeight: 700, color: T.danger, marginBottom: 6 } }, "\u26A0\uFE0F ALERTES STOCK (", needsReorder.length, ")"), needsReorder.slice(0, 5).map((p) => /* @__PURE__ */ React.createElement("div", { key: p.id, style: { display: "flex", justifyContent: "space-between", fontSize: 11, marginBottom: 4 } }, /* @__PURE__ */ React.createElement("span", { style: { color: T.text } }, p.name), /* @__PURE__ */ React.createElement("span", { style: { color: T.danger, fontWeight: 700 } }, p.qty, "/", p.alert)))))));
+    } })), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: T.muted, marginTop: 4 } }, mc.forecast ? Math.min(Math.round(mc.curCA / mc.forecast * 100), 100) : 0, "% de la pr\xE9vision atteint"))))), /* @__PURE__ */ React.createElement(Card, null, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 13, fontWeight: 700, color: T.text, marginBottom: 14 } }, "\xC9volution sur 12 mois"), /* @__PURE__ */ React.createElement("div", { style: { background: T.elevated, borderRadius: 10, padding: 20, textAlign: "center", color: T.muted, fontSize: 12 } }, "\u{1F4CA} Graphique disponible sur desktop")), /* @__PURE__ */ React.createElement("div", { style: { display: "grid", gridTemplateColumns: "1.3fr 1fr", gap: 16 } }, /* @__PURE__ */ React.createElement(Card, null, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 13, fontWeight: 700, color: T.text, marginBottom: 14 } }, "Top produits \u2014 Marge g\xE9n\xE9r\xE9e"), productMargins.slice(0, 5).map((p, i) => /* @__PURE__ */ React.createElement("div", { key: p.name, style: { display: "flex", alignItems: "center", gap: 10, marginBottom: 11 } }, /* @__PURE__ */ React.createElement("div", { style: { width: 22, height: 22, borderRadius: "50%", background: T.gold + "22", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, fontWeight: 800, color: T.gold } }, i + 1), /* @__PURE__ */ React.createElement("div", { style: { flex: 1, minWidth: 0 } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 12, fontWeight: 700, color: T.text, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" } }, p.name), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", justifyContent: "space-between", marginTop: 2 } }, /* @__PURE__ */ React.createElement("span", { style: { fontSize: 11, color: T.success, fontWeight: 700 } }, fmt(p.margin)), /* @__PURE__ */ React.createElement("span", { style: { fontSize: 10, color: T.muted } }, p.pct, "% \xB7 ", p.qty, " vendus")), /* @__PURE__ */ React.createElement("div", { style: { background: T.border, borderRadius: 10, height: 4, marginTop: 4 } }, /* @__PURE__ */ React.createElement("div", { style: { width: `${Math.min(p.pct, 100)}%`, background: p.pct >= 40 ? T.success : p.pct >= 20 ? T.warning : T.danger, height: 4, borderRadius: 10 } })))))), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 12 } }, /* @__PURE__ */ React.createElement(Card, { style: { borderLeft: `4px solid ${T.gold}`, padding: "12px 16px" } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, fontWeight: 700, color: T.gold, marginBottom: 6 } }, "\u{1F4D0} FORMULE B\xC9N\xC9FICE NET"), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: T.muted, fontFamily: "monospace", lineHeight: 2 } }, "CA \u2212 Achats \u2212 D\xE9penses \u2212 Dettes fourn.", /* @__PURE__ */ React.createElement("br", null), /* @__PURE__ */ React.createElement("span", { style: { color: kpis.netProfit >= 0 ? T.success : T.danger, fontWeight: 900, fontSize: 14 } }, "= ", fmt(kpis.netProfit)))), needsReorder.length > 0 && /* @__PURE__ */ React.createElement(Card, { style: { borderLeft: `4px solid ${T.danger}`, padding: "12px 16px" } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, fontWeight: 700, color: T.danger, marginBottom: 6 } }, "\u26A0\uFE0F ALERTES STOCK (", needsReorder.length, ")"), needsReorder.slice(0, 5).map((p) => /* @__PURE__ */ React.createElement("div", { key: p.id, style: { display: "flex", justifyContent: "space-between", fontSize: 11, marginBottom: 4 } }, /* @__PURE__ */ React.createElement("span", { style: { color: T.text } }, p.name), /* @__PURE__ */ React.createElement("span", { style: { color: T.danger, fontWeight: 700 } }, p.qty, "/", p.alert)))))));
   }
   function CaissePage({ products, sales, setSales, setProducts, setDebts, userRole }) {
     var _a, _b, _c;
     const blank = { date: today(), client: "", clientPhone: "", payment: PAY_MODES[0], remise: 0, acompte: 0, note: "" };
-    const [form, setForm] = (0, import_react.useState)(blank);
-    const [items, setItems] = (0, import_react.useState)([]);
-    const [selP, setSelP] = (0, import_react.useState)("");
-    const [selQ, setSelQ] = (0, import_react.useState)(1);
-    const [selBuy, setSelBuy] = (0, import_react.useState)("");
-    const [prodSearch, setProdSearch] = (0, import_react.useState)("");
-    const [showDrop, setShowDrop] = (0, import_react.useState)(false);
-    const [receipt, setReceipt] = (0, import_react.useState)(null);
-    const [hist, setHist] = (0, import_react.useState)(false);
-    const [search, setSearch] = (0, import_react.useState)("");
-    const [cancelConfirm, setCancelConfirm] = (0, import_react.useState)(null);
+    const [form, setForm] = useState(blank);
+    const [items, setItems] = useState([]);
+    const [selP, setSelP] = useState("");
+    const [selQ, setSelQ] = useState(1);
+    const [selBuy, setSelBuy] = useState("");
+    const [prodSearch, setProdSearch] = useState("");
+    const [showDrop, setShowDrop] = useState(false);
+    const [receipt, setReceipt] = useState(null);
+    const [hist, setHist] = useState(false);
+    const [search, setSearch] = useState("");
+    const [cancelConfirm, setCancelConfirm] = useState(null);
     const total = items.reduce((s, it) => s + it.qty * it.sell, 0), remise = +form.remise || 0, net = total - remise;
     const marge = items.reduce((s, it) => s + it.qty * (it.sell - it.buy), 0) - remise;
     const handleSelProd = (e) => {
@@ -759,10 +694,10 @@ ${sale.payment === "Cr\xE9dit client" ? `<div class="cr">\u26A0\uFE0F Reste d\xF
       }));
       setCancelConfirm(null);
     };
-    const [renameItem, setRenameItem] = (0, import_react.useState)(null);
-    const [renameVal, setRenameVal] = (0, import_react.useState)("");
-    const safeSales = (0, import_react.useMemo)(() => sales.filter((s) => s && Array.isArray(s.items)), [sales]);
-    const filteredSales = (0, import_react.useMemo)(() => safeSales.filter((s) => !search || s.items.some((it) => it.name.toLowerCase().includes(search.toLowerCase())) || (s.client || "").toLowerCase().includes(search.toLowerCase())), [safeSales, search]);
+    const [renameItem, setRenameItem] = useState(null);
+    const [renameVal, setRenameVal] = useState("");
+    const safeSales = useMemo(() => sales.filter((s) => s && Array.isArray(s.items)), [sales]);
+    const filteredSales = useMemo(() => safeSales.filter((s) => !search || s.items.some((it) => it.name.toLowerCase().includes(search.toLowerCase())) || (s.client || "").toLowerCase().includes(search.toLowerCase())), [safeSales, search]);
     return /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 18 } }, /* @__PURE__ */ React.createElement("h1", { style: { margin: 0, fontSize: 22, fontWeight: 900, color: T.gold } }, "\u{1F6D2} Caisse client"), /* @__PURE__ */ React.createElement(Btn, { variant: "ghost", small: true, onClick: () => setHist((h) => !h) }, hist ? "\u2190 Retour caisse" : "\u{1F4CB} Historique")), hist ? /* @__PURE__ */ React.createElement(Card, { style: { padding: 0, overflow: "hidden" } }, /* @__PURE__ */ React.createElement("div", { style: { padding: "10px 14px", borderBottom: `1px solid ${T.border}`, display: "flex", gap: 10, alignItems: "center" } }, /* @__PURE__ */ React.createElement(
       "input",
       {
@@ -900,12 +835,12 @@ ${sale.payment === "Cr\xE9dit client" ? `<div class="cr">\u26A0\uFE0F Reste d\xF
     }, disabled: !renameVal.trim() }, "\u2705 Renommer (panier uniquement)"))), showDrop && /* @__PURE__ */ React.createElement("div", { style: { position: "fixed", inset: 0, zIndex: 400 }, onClick: () => setShowDrop(false) }), /* @__PURE__ */ React.createElement(Modal, { title: "\u21A9 Annuler cette vente ?", onClose: () => setCancelConfirm(null), width: 400 }, /* @__PURE__ */ React.createElement("div", { style: { background: T.elevated, borderRadius: 10, padding: "12px 14px", marginBottom: 14, fontSize: 13 } }, /* @__PURE__ */ React.createElement("div", { style: { color: T.text, fontWeight: 700, marginBottom: 6 } }, cancelConfirm.items.map((it) => `${it.name} \xD7${it.qty}`).join(", ")), /* @__PURE__ */ React.createElement("div", { style: { color: T.muted } }, "Client : ", cancelConfirm.client || "\u2014", " \xB7 ", cancelConfirm.date), /* @__PURE__ */ React.createElement("div", { style: { color: T.gold, fontWeight: 800, marginTop: 6 } }, fmt(saleTotal(cancelConfirm)))), /* @__PURE__ */ React.createElement("div", { style: { background: T.warning + "15", border: `1px solid ${T.warning}44`, borderRadius: 10, padding: 11, fontSize: 12, color: T.warning, marginBottom: 16 } }, "\u26A0\uFE0F Le stock des articles sera remis automatiquement. Cette action ne peut pas \xEAtre annul\xE9e."), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", justifyContent: "flex-end", gap: 10 } }, /* @__PURE__ */ React.createElement(Btn, { variant: "ghost", onClick: () => setCancelConfirm(null) }, "Non, garder"), /* @__PURE__ */ React.createElement(Btn, { variant: "danger", onClick: () => cancelSale(cancelConfirm) }, "\u2705 Oui, annuler la vente"))), ")}");
   }
   function ApprovPage({ products, setProducts, supplies, setSupplies, setDebts, needsReorder }) {
-    const [modal, setModal] = (0, import_react.useState)(false);
-    const [payM, setPayM] = (0, import_react.useState)(null);
-    const [payAmt, setPayAmt] = (0, import_react.useState)("");
-    const [tab, setTab] = (0, import_react.useState)("history");
+    const [modal, setModal] = useState(false);
+    const [payM, setPayM] = useState(null);
+    const [payAmt, setPayAmt] = useState("");
+    const [tab, setTab] = useState("history");
     const blank = { date: today(), supplier: "", product_id: "", qty: "", unit_buy: "", paid: 0, note: "" };
-    const [form, setForm] = (0, import_react.useState)(blank);
+    const [form, setForm] = useState(blank);
     const selProd = products.find((p) => p.id === form.product_id);
     const total = (+form.qty || 0) * (+form.unit_buy || 0);
     const stC = { sold\u00E9: T.success, partiel: T.warning, impay\u00E9: T.danger };
@@ -941,7 +876,7 @@ ${sale.payment === "Cr\xE9dit client" ? `<div class="cr">\u26A0\uFE0F Reste d\xF
       setPayM(null);
       setPayAmt("");
     };
-    const bySupplier = (0, import_react.useMemo)(() => {
+    const bySupplier = useMemo(() => {
       const map = {};
       supplies.forEach((s) => {
         if (!map[s.supplier]) map[s.supplier] = { name: s.supplier, total: 0, paid: 0, orders: 0 };
@@ -974,9 +909,9 @@ ${sale.payment === "Cr\xE9dit client" ? `<div class="cr">\u26A0\uFE0F Reste d\xF
     )), /* @__PURE__ */ React.createElement(Input, { label: "Quantit\xE9 re\xE7ue", type: "number", min: "1", value: form.qty, onChange: (e) => setForm((f) => __spreadProps(__spreadValues({}, f), { qty: e.target.value })) }), /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement(Input, { label: "Prix unitaire d'achat", type: "number", value: form.unit_buy, onChange: (e) => setForm((f) => __spreadProps(__spreadValues({}, f), { unit_buy: e.target.value })) }), total > 0 && /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: T.gold, marginTop: 3, fontWeight: 700 } }, "Total : ", fmt(total))), /* @__PURE__ */ React.createElement(Input, { label: "Acompte pay\xE9 (GNF)", type: "number", min: "0", value: form.paid, onChange: (e) => setForm((f) => __spreadProps(__spreadValues({}, f), { paid: e.target.value })), placeholder: "0 = paiement diff\xE9r\xE9" }), /* @__PURE__ */ React.createElement(Input, { label: "Note / N\xB0 facture", value: form.note, onChange: (e) => setForm((f) => __spreadProps(__spreadValues({}, f), { note: e.target.value })), placeholder: "R\xE9f\xE9rence\u2026" })), total > 0 && /* @__PURE__ */ React.createElement("div", { style: { background: T.elevated, borderRadius: 10, padding: 11, marginTop: 12, display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8, fontSize: 12 } }, [["Total facture", fmt(total), T.text], ["Acompte pay\xE9", fmt(+form.paid || 0), T.success], ["Dette cr\xE9\xE9e", total - (+form.paid || 0) > 0 ? fmt(total - (+form.paid || 0)) : "\u2705 Sold\xE9", total - (+form.paid || 0) > 0 ? T.danger : T.success]].map(([l, v, c]) => /* @__PURE__ */ React.createElement("div", { key: l }, /* @__PURE__ */ React.createElement("div", { style: { color: T.muted, fontSize: 10, marginBottom: 2 } }, l), /* @__PURE__ */ React.createElement("div", { style: { fontWeight: 800, color: c } }, v)))), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", justifyContent: "flex-end", gap: 10, marginTop: 16 } }, /* @__PURE__ */ React.createElement(Btn, { variant: "ghost", onClick: () => setModal(false) }, "Annuler"), /* @__PURE__ */ React.createElement(Btn, { onClick: handleReceive, disabled: !form.supplier || !form.product_id || !form.qty || !form.unit_buy }, "\u2705 Valider la r\xE9ception"))), payM && /* @__PURE__ */ React.createElement(Modal, { title: "\u{1F4B8} Payer le fournisseur", onClose: () => setPayM(null), width: 350 }, /* @__PURE__ */ React.createElement("div", { style: { marginBottom: 12, fontSize: 12, color: T.muted } }, /* @__PURE__ */ React.createElement("strong", { style: { color: T.text } }, payM.supplier), " \u2014 ", payM.product_name, /* @__PURE__ */ React.createElement("br", null), "Reste : ", /* @__PURE__ */ React.createElement("strong", { style: { color: T.danger } }, fmt(payM.total - payM.paid))), /* @__PURE__ */ React.createElement(Input, { label: "Montant (GNF)", type: "number", value: payAmt, onChange: (e) => setPayAmt(e.target.value) }), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", justifyContent: "flex-end", gap: 10, marginTop: 16 } }, /* @__PURE__ */ React.createElement(Btn, { variant: "ghost", onClick: () => setPayM(null) }, "Annuler"), /* @__PURE__ */ React.createElement(Btn, { onClick: handlePay, disabled: !payAmt }, "Confirmer"))));
   }
   function ProductsPage({ products, setProducts }) {
-    const [modal, setModal] = (0, import_react.useState)(null);
+    const [modal, setModal] = useState(null);
     const blank = { name: "", category: CATEGORIES[0], buy: "", sell: "", qty: "", alert: 3, supplier: "" };
-    const [form, setForm] = (0, import_react.useState)(blank);
+    const [form, setForm] = useState(blank);
     const stS = (p) => p.qty === 0 ? "rupture" : p.qty <= p.alert ? "critique" : p.qty <= p.alert * 2 ? "faible" : "ok";
     const stC = { ok: T.success, faible: T.warning, critique: T.danger, rupture: T.muted };
     const stL = { ok: "En stock", faible: "Faible", critique: "Critique \u26A0\uFE0F", rupture: "Rupture" };
@@ -999,8 +934,8 @@ ${sale.payment === "Cr\xE9dit client" ? `<div class="cr">\u26A0\uFE0F Reste d\xF
     }))))), modal && /* @__PURE__ */ React.createElement(Modal, { title: modal === "new" ? "\u2795 Nouveau produit" : "\u270F\uFE0F Modifier", onClose: () => setModal(null) }, /* @__PURE__ */ React.createElement("div", { style: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 13 } }, /* @__PURE__ */ React.createElement("div", { style: { gridColumn: "1/-1" } }, /* @__PURE__ */ React.createElement(Input, { label: "Nom", value: form.name, onChange: (e) => setForm((f) => __spreadProps(__spreadValues({}, f), { name: e.target.value })) })), /* @__PURE__ */ React.createElement(Sel, { label: "Cat\xE9gorie", value: form.category, onChange: (e) => setForm((f) => __spreadProps(__spreadValues({}, f), { category: e.target.value })), options: CATEGORIES }), /* @__PURE__ */ React.createElement(Input, { label: "Fournisseur", value: form.supplier, onChange: (e) => setForm((f) => __spreadProps(__spreadValues({}, f), { supplier: e.target.value })) }), /* @__PURE__ */ React.createElement(Input, { label: "Prix achat (GNF)", type: "number", value: form.buy, onChange: (e) => setForm((f) => __spreadProps(__spreadValues({}, f), { buy: e.target.value })) }), /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement(Input, { label: "Prix vente (GNF)", type: "number", value: form.sell, onChange: (e) => setForm((f) => __spreadProps(__spreadValues({}, f), { sell: e.target.value })) }), form.buy && form.sell && /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: T.success, marginTop: 3, fontWeight: 700 } }, "Marge : ", fmt(form.sell - form.buy), " (", Math.round((form.sell - form.buy) / form.sell * 100), "%)")), /* @__PURE__ */ React.createElement(Input, { label: "Stock actuel", type: "number", value: form.qty, onChange: (e) => setForm((f) => __spreadProps(__spreadValues({}, f), { qty: e.target.value })) }), /* @__PURE__ */ React.createElement(Input, { label: "Seuil alerte", type: "number", value: form.alert, onChange: (e) => setForm((f) => __spreadProps(__spreadValues({}, f), { alert: e.target.value })) })), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", justifyContent: "flex-end", gap: 10, marginTop: 16 } }, /* @__PURE__ */ React.createElement(Btn, { variant: "ghost", onClick: () => setModal(null) }, "Annuler"), /* @__PURE__ */ React.createElement(Btn, { onClick: save2 }, "Enregistrer"))));
   }
   function ExpensesPage({ expenses, setExpenses }) {
-    const [modal, setModal] = (0, import_react.useState)(false);
-    const [form, setForm] = (0, import_react.useState)({ date: today(), type: DEP_TYPES[0], amount: "", note: "" });
+    const [modal, setModal] = useState(false);
+    const [form, setForm] = useState({ date: today(), type: DEP_TYPES[0], amount: "", note: "" });
     const total = expenses.reduce((s, e) => s + e.amount, 0);
     return /* @__PURE__ */ React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 16 } }, /* @__PURE__ */ React.createElement("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "center" } }, /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("h1", { style: { margin: 0, fontSize: 22, fontWeight: 900, color: T.gold } }, "\u{1F9FE} D\xE9penses"), /* @__PURE__ */ React.createElement("p", { style: { margin: "3px 0 0", color: T.muted, fontSize: 12 } }, "Total : ", /* @__PURE__ */ React.createElement("strong", { style: { color: T.danger } }, fmt(total)))), /* @__PURE__ */ React.createElement(Btn, { onClick: () => setModal(true) }, "+ Ajouter")), /* @__PURE__ */ React.createElement("div", { style: { display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(185px,1fr))", gap: 10 } }, DEP_TYPES.map((type) => {
       const t = expenses.filter((e) => e.type === type).reduce((s, e) => s + e.amount, 0);
@@ -1013,12 +948,12 @@ ${sale.payment === "Cr\xE9dit client" ? `<div class="cr">\u26A0\uFE0F Reste d\xF
     }, disabled: !form.amount }, "Enregistrer"))));
   }
   function DebtsPage({ debts, setDebts }) {
-    const [modal, setModal] = (0, import_react.useState)(false);
-    const [payM, setPayM] = (0, import_react.useState)(null);
-    const [view, setView] = (0, import_react.useState)("both");
-    const [payAmt, setPayAmt] = (0, import_react.useState)("");
-    const [formType, setFormType] = (0, import_react.useState)("client");
-    const [form, setForm] = (0, import_react.useState)({ name: "", amount: "", due_date: "", note: "" });
+    const [modal, setModal] = useState(false);
+    const [payM, setPayM] = useState(null);
+    const [view, setView] = useState("both");
+    const [payAmt, setPayAmt] = useState("");
+    const [formType, setFormType] = useState("client");
+    const [form, setForm] = useState({ name: "", amount: "", due_date: "", note: "" });
     const isOverdue = (d) => d.due_date && new Date(d.due_date) < /* @__PURE__ */ new Date() && d.paid < d.amount;
     const clients = debts.filter((d) => d.type === "client");
     const suppliers = debts.filter((d) => d.type === "supplier");
@@ -1082,10 +1017,10 @@ ${sale.payment === "Cr\xE9dit client" ? `<div class="cr">\u26A0\uFE0F Reste d\xF
     }, disabled: !payAmt }, payM.type === "client" ? "\u2705 Encaisser" : "\u2705 Confirmer le paiement"))));
   }
   function RapportsPage({ sales, expenses, debts, products, supplies }) {
-    const [periode, setPeriode] = (0, import_react.useState)("mois");
-    const [dD, setDD] = (0, import_react.useState)("");
-    const [dF, setDF] = (0, import_react.useState)("");
-    const salesF = (0, import_react.useMemo)(() => {
+    const [periode, setPeriode] = useState("mois");
+    const [dD, setDD] = useState("");
+    const [dF, setDF] = useState("");
+    const salesF = useMemo(() => {
       const now = /* @__PURE__ */ new Date();
       return sales.filter((s) => {
         const d = new Date(s.date);
@@ -1109,7 +1044,7 @@ ${sale.payment === "Cr\xE9dit client" ? `<div class="cr">\u26A0\uFE0F Reste d\xF
     const depTotal = expenses.reduce((s, e) => s + e.amount, 0);
     const detteFourn = debts.filter((d) => d.type === "supplier").reduce((s, d) => s + (d.amount - d.paid), 0);
     const benefice = marge - depTotal - detteFourn;
-    const parJour = (0, import_react.useMemo)(() => {
+    const parJour = useMemo(() => {
       const map = {};
       salesF.forEach((v) => {
         if (!map[v.date]) map[v.date] = { date: v.date.slice(5), ca: 0, marge: 0 };
@@ -1118,7 +1053,7 @@ ${sale.payment === "Cr\xE9dit client" ? `<div class="cr">\u26A0\uFE0F Reste d\xF
       });
       return Object.values(map).sort((a, b) => a.date.localeCompare(b.date));
     }, [salesF]);
-    const parProduit = (0, import_react.useMemo)(() => {
+    const parProduit = useMemo(() => {
       const map = {};
       salesF.forEach((v) => v.items.forEach((it) => {
         if (!map[it.name]) map[it.name] = { name: it.name, ca: 0, cogs: 0, qty: 0 };
@@ -1128,7 +1063,7 @@ ${sale.payment === "Cr\xE9dit client" ? `<div class="cr">\u26A0\uFE0F Reste d\xF
       }));
       return Object.values(map).map((p) => __spreadProps(__spreadValues({}, p), { marge: p.ca - p.cogs, pct: p.ca ? Math.round((p.ca - p.cogs) / p.ca * 100) : 0 })).sort((a, b) => b.marge - a.marge);
     }, [salesF]);
-    const parPaiement = (0, import_react.useMemo)(() => {
+    const parPaiement = useMemo(() => {
       const map = {};
       salesF.forEach((v) => {
         map[v.payment] = (map[v.payment] || 0) + saleTotal(v);
@@ -1173,7 +1108,7 @@ ${sale.payment === "Cr\xE9dit client" ? `<div class="cr">\u26A0\uFE0F Reste d\xF
       { icon: "\u{1F6D2}", l: "Nb de ventes", v: salesF.length, c: T.muted },
       { icon: "\u{1F3AF}", l: "Panier moyen", v: salesF.length ? fmt(Math.round(ca / salesF.length)) : fmt(0), c: T.info },
       { icon: benefice >= 0 ? "\u2705" : "\u{1F534}", l: "B\xE9n\xE9fice net", v: fmt(benefice), c: benefice >= 0 ? T.success : T.danger, s: "Marge\u2212D\xE9p.\u2212Dettes fourn." }
-    ].map((k) => /* @__PURE__ */ React.createElement(Card, { key: k.l, style: { borderTop: `3px solid ${k.c}`, padding: "11px 13px" } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 17, marginBottom: 3 } }, k.icon), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 15, fontWeight: 800, color: T.text } }, k.v), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: T.muted, marginTop: 2 } }, k.l), k.s && /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: k.c, fontWeight: 700, marginTop: 2 } }, k.s)))), bestDay && worstDay && bestDay.date !== worstDay.date && /* @__PURE__ */ React.createElement("div", { style: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 13 } }, /* @__PURE__ */ React.createElement(Card, { style: { borderLeft: `4px solid ${T.success}`, padding: "11px 14px" } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: T.success, fontWeight: 700, marginBottom: 5 } }, "\u{1F3C6} MEILLEURE JOURN\xC9E"), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 17, fontWeight: 900, color: T.text } }, bestDay.date), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 13, color: T.gold, fontWeight: 700 } }, fmt(bestDay.ca)), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 11, color: T.success } }, "Marge : ", fmt(bestDay.marge))), /* @__PURE__ */ React.createElement(Card, { style: { borderLeft: `4px solid ${T.warning}`, padding: "11px 14px" } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: T.warning, fontWeight: 700, marginBottom: 5 } }, "\u{1F4C9} JOURN\xC9E LA PLUS FAIBLE"), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 17, fontWeight: 900, color: T.text } }, worstDay.date), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 13, color: T.gold, fontWeight: 700 } }, fmt(worstDay.ca)), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 11, color: T.warning } }, "Marge : ", fmt(worstDay.marge)))), parJour.length > 0 && /* @__PURE__ */ React.createElement(Card, null, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 12, fontWeight: 700, color: T.text, marginBottom: 12 } }, "CA et Marge par jour"), /* @__PURE__ */ React.createElement(import_recharts.ResponsiveContainer, { width: "100%", height: 175 }, /* @__PURE__ */ React.createElement(import_recharts.BarChart, { data: parJour, barGap: 2 }, /* @__PURE__ */ React.createElement(import_recharts.CartesianGrid, { strokeDasharray: "3 3", stroke: T.border, vertical: false }), /* @__PURE__ */ React.createElement(import_recharts.XAxis, __spreadValues({ dataKey: "date" }, axisP)), /* @__PURE__ */ React.createElement(import_recharts.YAxis, __spreadValues({ tickFormatter: fmtK }, axisP)), /* @__PURE__ */ React.createElement(import_recharts.Tooltip, { formatter: (v, n) => [fmt(v), n === "ca" ? "CA" : "Marge"], contentStyle: tooltipSt }), /* @__PURE__ */ React.createElement(import_recharts.Legend, { wrapperStyle: { fontSize: 11, color: T.muted } }), /* @__PURE__ */ React.createElement(import_recharts.Bar, { dataKey: "ca", name: "CA", fill: T.gold, radius: [3, 3, 0, 0] }), /* @__PURE__ */ React.createElement(import_recharts.Bar, { dataKey: "marge", name: "Marge", fill: T.success, radius: [3, 3, 0, 0] })))), /* @__PURE__ */ React.createElement(Card, { style: { padding: 0, overflow: "hidden" } }, /* @__PURE__ */ React.createElement("div", { style: { padding: "11px 14px", borderBottom: `1px solid ${T.border}`, fontSize: 12, fontWeight: 700, color: T.text } }, "Performance par produit"), parProduit.length === 0 ? /* @__PURE__ */ React.createElement("div", { style: { padding: 28, textAlign: "center", color: T.muted } }, "Aucune vente sur cette p\xE9riode") : /* @__PURE__ */ React.createElement("div", { style: { overflowX: "auto" } }, /* @__PURE__ */ React.createElement("table", { style: { width: "100%", borderCollapse: "collapse", fontSize: 12 } }, /* @__PURE__ */ React.createElement("thead", null, /* @__PURE__ */ React.createElement("tr", { style: { background: T.elevated } }, ["Produit", "Qt\xE9", "CA", "Co\xFBt", "Marge", "Taux", "Part CA"].map((c) => /* @__PURE__ */ React.createElement(TH, { key: c, c })))), /* @__PURE__ */ React.createElement("tbody", null, parProduit.map((p, i) => {
+    ].map((k) => /* @__PURE__ */ React.createElement(Card, { key: k.l, style: { borderTop: `3px solid ${k.c}`, padding: "11px 13px" } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 17, marginBottom: 3 } }, k.icon), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 15, fontWeight: 800, color: T.text } }, k.v), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: T.muted, marginTop: 2 } }, k.l), k.s && /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: k.c, fontWeight: 700, marginTop: 2 } }, k.s)))), bestDay && worstDay && bestDay.date !== worstDay.date && /* @__PURE__ */ React.createElement("div", { style: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 13 } }, /* @__PURE__ */ React.createElement(Card, { style: { borderLeft: `4px solid ${T.success}`, padding: "11px 14px" } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: T.success, fontWeight: 700, marginBottom: 5 } }, "\u{1F3C6} MEILLEURE JOURN\xC9E"), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 17, fontWeight: 900, color: T.text } }, bestDay.date), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 13, color: T.gold, fontWeight: 700 } }, fmt(bestDay.ca)), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 11, color: T.success } }, "Marge : ", fmt(bestDay.marge))), /* @__PURE__ */ React.createElement(Card, { style: { borderLeft: `4px solid ${T.warning}`, padding: "11px 14px" } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: T.warning, fontWeight: 700, marginBottom: 5 } }, "\u{1F4C9} JOURN\xC9E LA PLUS FAIBLE"), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 17, fontWeight: 900, color: T.text } }, worstDay.date), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 13, color: T.gold, fontWeight: 700 } }, fmt(worstDay.ca)), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 11, color: T.warning } }, "Marge : ", fmt(worstDay.marge)))), parJour.length > 0 && /* @__PURE__ */ React.createElement(Card, null, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 12, fontWeight: 700, color: T.text, marginBottom: 12 } }, "CA et Marge par jour"), /* @__PURE__ */ React.createElement("div", { style: { background: T.elevated, borderRadius: 10, padding: 20, textAlign: "center", color: T.muted, fontSize: 12 } }, "\u{1F4CA} Graphique disponible sur desktop")), /* @__PURE__ */ React.createElement(Card, { style: { padding: 0, overflow: "hidden" } }, /* @__PURE__ */ React.createElement("div", { style: { padding: "11px 14px", borderBottom: `1px solid ${T.border}`, fontSize: 12, fontWeight: 700, color: T.text } }, "Performance par produit"), parProduit.length === 0 ? /* @__PURE__ */ React.createElement("div", { style: { padding: 28, textAlign: "center", color: T.muted } }, "Aucune vente sur cette p\xE9riode") : /* @__PURE__ */ React.createElement("div", { style: { overflowX: "auto" } }, /* @__PURE__ */ React.createElement("table", { style: { width: "100%", borderCollapse: "collapse", fontSize: 12 } }, /* @__PURE__ */ React.createElement("thead", null, /* @__PURE__ */ React.createElement("tr", { style: { background: T.elevated } }, ["Produit", "Qt\xE9", "CA", "Co\xFBt", "Marge", "Taux", "Part CA"].map((c) => /* @__PURE__ */ React.createElement(TH, { key: c, c })))), /* @__PURE__ */ React.createElement("tbody", null, parProduit.map((p, i) => {
       const part = ca ? Math.round(p.ca / ca * 100) : 0;
       return /* @__PURE__ */ React.createElement(TRow, { key: p.name, i }, /* @__PURE__ */ React.createElement(TD, { style: { fontWeight: 700, color: T.text } }, p.name), /* @__PURE__ */ React.createElement(TD, { style: { textAlign: "center" } }, p.qty), /* @__PURE__ */ React.createElement(TD, { style: { fontFamily: "monospace", fontWeight: 700 } }, fmt(p.ca)), /* @__PURE__ */ React.createElement(TD, { style: { fontFamily: "monospace", color: T.muted } }, fmt(p.cogs)), /* @__PURE__ */ React.createElement(TD, { style: { fontFamily: "monospace", fontWeight: 800, color: p.marge >= 0 ? T.success : T.danger } }, fmt(p.marge)), /* @__PURE__ */ React.createElement(TD, null, /* @__PURE__ */ React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 4 } }, /* @__PURE__ */ React.createElement("div", { style: { width: 44, background: T.border, borderRadius: 10, height: 5 } }, /* @__PURE__ */ React.createElement("div", { style: { width: `${Math.min(p.pct, 100)}%`, background: p.pct >= 40 ? T.success : p.pct >= 20 ? T.warning : T.danger, height: 5, borderRadius: 10 } })), /* @__PURE__ */ React.createElement("span", { style: { fontSize: 10, fontWeight: 700, color: p.pct >= 40 ? T.success : p.pct >= 20 ? T.warning : T.danger } }, p.pct, "%"))), /* @__PURE__ */ React.createElement(TD, null, /* @__PURE__ */ React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 4 } }, /* @__PURE__ */ React.createElement("div", { style: { width: 36, background: T.border, borderRadius: 10, height: 5 } }, /* @__PURE__ */ React.createElement("div", { style: { width: `${part}%`, background: T.gold, height: 5, borderRadius: 10 } })), /* @__PURE__ */ React.createElement("span", { style: { fontSize: 10, color: T.gold } }, part, "%"))));
     }), /* @__PURE__ */ React.createElement("tr", { style: { background: T.elevated, fontWeight: 800 } }, /* @__PURE__ */ React.createElement(TD, { style: { color: T.gold } }, "TOTAL"), /* @__PURE__ */ React.createElement(TD, { style: { textAlign: "center" } }, salesF.reduce((s, v) => s + v.items.reduce((a, it) => a + it.qty, 0), 0)), /* @__PURE__ */ React.createElement(TD, { style: { fontFamily: "monospace", color: T.gold } }, fmt(ca)), /* @__PURE__ */ React.createElement(TD, { style: { fontFamily: "monospace", color: T.muted } }, fmt(cogs)), /* @__PURE__ */ React.createElement(TD, { style: { fontFamily: "monospace", color: T.success } }, fmt(marge)), /* @__PURE__ */ React.createElement(TD, { style: { color: T.success } }, margePct, "%"), /* @__PURE__ */ React.createElement(TD, { style: { color: T.gold } }, "100%")))))), /* @__PURE__ */ React.createElement(Card, null, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 12, fontWeight: 700, color: T.text, marginBottom: 13 } }, "R\xE9partition des modes de paiement"), parPaiement.length === 0 ? /* @__PURE__ */ React.createElement("div", { style: { color: T.muted, fontSize: 12 } }, "Aucune donn\xE9e") : parPaiement.map((p) => {
@@ -1182,10 +1117,10 @@ ${sale.payment === "Cr\xE9dit client" ? `<div class="cr">\u26A0\uFE0F Reste d\xF
     })));
   }
   function ClientsPage({ clientStats, setClients, sales }) {
-    const [modal, setModal] = (0, import_react.useState)(null);
-    const [detail, setDetail] = (0, import_react.useState)(null);
+    const [modal, setModal] = useState(null);
+    const [detail, setDetail] = useState(null);
     const blank = { name: "", phone: "", email: "", note: "" };
-    const [form, setForm] = (0, import_react.useState)(blank);
+    const [form, setForm] = useState(blank);
     const clientSales = (c) => sales.filter((s) => s.client === c.name && s.status !== "annul\xE9e").sort((a, b) => b.date.localeCompare(a.date));
     const nivColor = { Or: T.gold, Argent: T.muted, Bronze: T.warning };
     return /* @__PURE__ */ React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 16 } }, /* @__PURE__ */ React.createElement("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "center" } }, /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("h1", { style: { margin: 0, fontSize: 22, fontWeight: 900, color: T.gold } }, "\u{1F464} Clients"), /* @__PURE__ */ React.createElement("p", { style: { margin: "3px 0 0", color: T.muted, fontSize: 12 } }, clientStats.length, " client(s) enregistr\xE9(s)")), /* @__PURE__ */ React.createElement(Btn, { onClick: () => {
@@ -1209,10 +1144,10 @@ ${sale.payment === "Cr\xE9dit client" ? `<div class="cr">\u26A0\uFE0F Reste d\xF
     ].map(({ l, v, c }) => /* @__PURE__ */ React.createElement("div", { key: l, style: { background: T.elevated, borderRadius: 10, padding: "10px 13px" } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: T.muted, marginBottom: 3 } }, l), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 16, fontWeight: 900, color: c } }, v)))), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 12, fontWeight: 700, color: T.muted, marginBottom: 8 } }, "HISTORIQUE DES ACHATS"), /* @__PURE__ */ React.createElement("div", { style: { maxHeight: 260, overflowY: "auto", borderRadius: 10, border: `1px solid ${T.border}` } }, /* @__PURE__ */ React.createElement("table", { style: { width: "100%", borderCollapse: "collapse", fontSize: 12 } }, /* @__PURE__ */ React.createElement("thead", null, /* @__PURE__ */ React.createElement("tr", { style: { background: T.elevated } }, ["Date", "Articles", "Total", "Paiement"].map((c) => /* @__PURE__ */ React.createElement(TH, { key: c, c })))), /* @__PURE__ */ React.createElement("tbody", null, clientSales(detail).length === 0 ? /* @__PURE__ */ React.createElement("tr", null, /* @__PURE__ */ React.createElement("td", { colSpan: 4, style: { padding: 20, textAlign: "center", color: T.muted } }, "Aucun achat")) : clientSales(detail).map((s, i) => /* @__PURE__ */ React.createElement(TRow, { key: s.id, i }, /* @__PURE__ */ React.createElement(TD, { style: { color: T.muted } }, s.date), /* @__PURE__ */ React.createElement(TD, { style: { color: T.text } }, (s.items || []).map((it) => `${it.name} \xD7${it.qty}`).join(", ")), /* @__PURE__ */ React.createElement(TD, { style: { fontFamily: "monospace", fontWeight: 700, color: T.gold } }, fmt(saleTotal(s))), /* @__PURE__ */ React.createElement(TD, null, /* @__PURE__ */ React.createElement(Badge, { label: s.payment, color: PAY_COLOR[s.payment] || T.muted, small: true })))))))));
   }
   function LoginScreen({ onLogin }) {
-    const [pin, setPin] = (0, import_react.useState)("");
-    const [error, setError] = (0, import_react.useState)("");
-    const [selUser, setSelUser] = (0, import_react.useState)(USERS[0]);
-    const [resetDone, setResetDone] = (0, import_react.useState)(false);
+    const [pin, setPin] = useState("");
+    const [error, setError] = useState("");
+    const [selUser, setSelUser] = useState(USERS[0]);
+    const [resetDone, setResetDone] = useState(false);
     const tryLogin = () => {
       const user = USERS.find((u) => u.id === selUser.id && u.pin === pin);
       if (user) {
@@ -1305,8 +1240,8 @@ ${sale.payment === "Cr\xE9dit client" ? `<div class="cr">\u26A0\uFE0F Reste d\xF
     { id: "rapports", icon: "\u{1F4C8}", label: "Rapport des ventes", roles: ["admin"] }
   ];
   function App() {
-    const [user, setUser] = (0, import_react.useState)(null);
-    const [page, setPage] = (0, import_react.useState)("caisse");
+    const [user, setUser] = useState(null);
+    const [page, setPage] = useState("caisse");
     const store = useStore();
     const alerts = store.needsReorder.length;
     const overdues = store.debts.filter((d) => d.type === "supplier" && d.due_date && new Date(d.due_date) < /* @__PURE__ */ new Date() && d.paid < d.amount).length;
@@ -1344,19 +1279,24 @@ ${sale.payment === "Cr\xE9dit client" ? `<div class="cr">\u26A0\uFE0F Reste d\xF
       );
     })), user.role === "admin" && /* @__PURE__ */ React.createElement("div", { style: { padding: "11px 14px 16px", borderTop: `1px solid ${T.border}` } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 9, color: T.muted, letterSpacing: 1, marginBottom: 3 } }, "B\xC9N\xC9FICE NET ESTIM\xC9"), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 18, fontWeight: 900, color: store.kpis.netProfit >= 0 ? T.success : T.danger } }, fmt(store.kpis.netProfit)), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 9, color: T.muted, marginTop: 4 } }, "\u{1F4BE} Donn\xE9es sauvegard\xE9es auto"))), /* @__PURE__ */ React.createElement("main", { style: { marginLeft: 220, flex: 1, padding: "24px 28px", minHeight: "100vh", boxSizing: "border-box" } }, page === "dashboard" && /* @__PURE__ */ React.createElement(DashboardPage, { kpis: store.kpis, monthlyStats: store.monthlyStats, monthComparison: store.monthComparison, productMargins: store.productMargins, needsReorder: store.needsReorder }), page === "caisse" && /* @__PURE__ */ React.createElement(CaissePage, { products: store.products, sales: store.sales, setSales: store.setSales, setProducts: store.setProducts, setDebts: store.setDebts, userRole: user.role }), page === "clients" && /* @__PURE__ */ React.createElement(ClientsPage, { clientStats: store.clientStats, setClients: store.setClients, sales: store.sales }), page === "approv" && /* @__PURE__ */ React.createElement(ApprovPage, { products: store.products, setProducts: store.setProducts, supplies: store.supplies, setSupplies: store.setSupplies, setDebts: store.setDebts, needsReorder: store.needsReorder }), page === "products" && /* @__PURE__ */ React.createElement(ProductsPage, { products: store.products, setProducts: store.setProducts }), page === "expenses" && /* @__PURE__ */ React.createElement(ExpensesPage, { expenses: store.expenses, setExpenses: store.setExpenses }), page === "debts" && /* @__PURE__ */ React.createElement(DebtsPage, { debts: store.debts, setDebts: store.setDebts }), page === "rapports" && /* @__PURE__ */ React.createElement(RapportsPage, { sales: store.sales, expenses: store.expenses, debts: store.debts, products: store.products, supplies: store.supplies })));
   }
-  return __toCommonJS(app_nodeps_exports);
+  window.__App = App;
 })();
 
+</script>
+<script>
+log('<span class="info">⏳ Montage App...</span>');
 try {
-  var App = EliteApp.default;
-  if (!App) throw new Error('App introuvable');
-  var root = ReactDOM.createRoot(document.getElementById('root'));
-  root.render(React.createElement(App));
-  var sp = document.getElementById('splash');
-  sp.style.opacity = '0';
-  setTimeout(function(){ sp && sp.parentNode && sp.parentNode.removeChild(sp); }, 600);
+  if(!window.__App) throw new Error("window.__App non défini");
+  log('✅ App trouvée');
+  var rootEl = document.getElementById("root");
+  ReactDOM.createRoot(rootEl).render(React.createElement(window.__App));
+  log('✅ App montée — suppression log...');
+  setTimeout(function(){ 
+    var l = document.getElementById('log');
+    if(l) l.style.display='none';
+  }, 2000);
 } catch(e) {
-  document.getElementById('st').textContent = '❌ ' + e.message;
+  log('<span class="err">❌ Montage: '+e.message+'</span>');
   console.error(e);
 }
 </script>
