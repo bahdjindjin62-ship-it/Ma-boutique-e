@@ -5,26 +5,54 @@
 <title>DJINDJIN — Mode Homme</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 body{background:#0A0F1E;font-family:'Inter',system-ui,sans-serif;color:#FFFFFF}
 #root{min-height:100vh}
+#sync-status{position:fixed;bottom:12px;right:12px;font-size:10px;padding:4px 10px;
+  border-radius:20px;background:#111827;border:1px solid #1E3A5F;color:#94A3B8;z-index:999;
+  transition:all .3s}
 ::-webkit-scrollbar{width:4px;height:4px}
 ::-webkit-scrollbar-track{background:#111827}
 ::-webkit-scrollbar-thumb{background:#C9A84C;border-radius:10px}
 select option{background:#1A2438;color:#FFFFFF}
-@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
 button:active{transform:scale(.97)}
 input:focus,select:focus{border-color:#C9A84C !important;box-shadow:0 0 0 2px rgba(201,168,76,.15)}
 </style></head><body>
-<div id="root"><div style="display:flex;align-items:center;justify-content:center;min-height:100vh;flex-direction:column;gap:16px">
-<div style="font-family:'Cormorant Garamond',serif;font-size:42px;font-weight:700;color:#C9A84C;letter-spacing:6px">DJINDJIN</div>
-<div style="color:#94A3B8;font-size:11px;letter-spacing:3px">CHARGEMENT…</div>
-</div></div>
+
+<div id="root">
+  <div style="display:flex;align-items:center;justify-content:center;min-height:100vh;flex-direction:column;gap:16px">
+    <div style="font-family:'Cormorant Garamond',serif;font-size:42px;font-weight:700;color:#C9A84C;letter-spacing:6px">DJINDJIN</div>
+    <div style="color:#94A3B8;font-size:11px;letter-spacing:3px" id="load-status">Connexion cloud…</div>
+  </div>
+</div>
+
+<div id="sync-status">☁️ Hors ligne</div>
+
 <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
 <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+
 <script>
 var {useState,useMemo,useCallback,useEffect,useRef}=React;
+
+// Initialiser Firebase avant l'app
+try {
+  initFirebase();
+  document.getElementById('sync-status').textContent = '☁️ Cloud connecté';
+  document.getElementById('sync-status').style.color = '#10B981';
+  document.getElementById('sync-status').style.borderColor = '#10B981';
+} catch(e) {
+  console.warn('Firebase init:', e);
+  document.getElementById('sync-status').textContent = '📱 Mode local';
+}
+</script>
+
+<script>
 var EliteBundle = (() => {
   const { useState, useMemo, useCallback, useEffect, useRef } = React;
   const XLSX = { utils: { book_new: () => ({ sheets: {}, order: [] }), json_to_sheet: (d) => d, book_append_sheet: (wb, ws, n) => {
@@ -45,9 +73,116 @@ var EliteBundle = (() => {
     a.click();
     document.body.removeChild(a);
   } };
-  const ResponsiveContainer = ({ height }) => React.createElement("div", { style: { background: "#1A2438", borderRadius: 10, padding: 16, textAlign: "center", color: "#94A3B8", fontSize: 11, height: height || 120, display: "flex", alignItems: "center", justifyContent: "center" } }, "\u{1F4CA} Graphique");
-  const BarChart = () => null;
-  const Bar = () => null;
+  let _db = null;
+  let _firebaseReady = false;
+  async function saveToCloud(data) {
+    try {
+      localStorage.setItem(LS, JSON.stringify(data));
+    } catch (e) {
+    }
+    if (!_firebaseReady || !_db) return;
+    try {
+      const ref = _db.collection("boutiques").doc("djindjin");
+      const batch = _db.batch();
+      const collections = {
+        products: data.products || [],
+        sales: (data.sales || []).slice(0, 500),
+        // Limiter aux 500 dernières ventes
+        expenses: data.expenses || [],
+        debts: data.debts || [],
+        supplies: data.supplies || [],
+        clients: data.clients || []
+      };
+      Object.entries(collections).forEach(([key, val]) => {
+        batch.set(_db.collection("boutiques").doc("djindjin_" + key), { data: val, updatedAt: (/* @__PURE__ */ new Date()).toISOString() });
+      });
+      await batch.commit();
+      console.log("Cloud sync \u2705");
+    } catch (e) {
+      console.warn("Cloud sync \xE9chou\xE9:", e.message);
+    }
+  }
+  async function loadFromCloud() {
+    if (!_firebaseReady || !_db) return loadData();
+    try {
+      const keys = ["products", "sales", "expenses", "debts", "supplies", "clients"];
+      const docs = await Promise.all(keys.map((k) => _db.collection("boutiques").doc("djindjin_" + k).get()));
+      const cloudData = {};
+      let hasCloudData = false;
+      docs.forEach((doc, i) => {
+        if (doc.exists && doc.data().data) {
+          cloudData[keys[i]] = doc.data().data;
+          hasCloudData = true;
+        }
+      });
+      if (hasCloudData) {
+        const merged = { ...SEED, ...cloudData };
+        try {
+          localStorage.setItem(LS, JSON.stringify(merged));
+        } catch (e) {
+        }
+        console.log("Donn\xE9es cloud charg\xE9es \u2705");
+        return merged;
+      }
+    } catch (e) {
+      console.warn("Chargement cloud \xE9chou\xE9, utilisation locale:", e.message);
+    }
+    return loadData();
+  }
+  function MiniBarChart({ data, keys, colors, height }) {
+    const H2 = height || 160, W = 320, H = H2 - 30, PL = 40, PR = 8, PT = 8;
+    if (!data || !data.length) return React.createElement("div", { style: { height: H2, display: "flex", alignItems: "center", justifyContent: "center", color: "#94A3B8", fontSize: 12 } }, "Pas de donn\xE9es");
+    const allV = data.flatMap((d) => (keys || []).map((k) => d[k] || 0));
+    const maxV = Math.max(...allV, 1);
+    const cW = (W - PL - PR) / data.length;
+    const bW = Math.max(4, (cW - 4) / Math.max((keys || []).length, 1) - 2);
+    const fY = (v) => v >= 1e6 ? (v / 1e6).toFixed(1) + "M" : v >= 1e3 ? (v / 1e3).toFixed(0) + "k" : String(Math.round(v));
+    return React.createElement(
+      "div",
+      { style: { position: "relative" } },
+      React.createElement(
+        "svg",
+        { width: "100%", viewBox: `0 0 ${W} ${H + 30 + PT}`, style: { overflow: "visible" } },
+        [0.25, 0.5, 0.75, 1].map((f) => {
+          const y = PT + (H - H * f);
+          return React.createElement(
+            "g",
+            { key: f },
+            React.createElement("line", { x1: PL, y1: y, x2: W - PR, y2: y, stroke: "#1E3A5F", strokeWidth: "1", strokeDasharray: "3,3" }),
+            React.createElement("text", { x: PL - 4, y: y + 4, textAnchor: "end", fontSize: "9", fill: "#94A3B8" }, fY(maxV * f))
+          );
+        }),
+        data.map((d, i) => {
+          const x0 = PL + i * cW;
+          return React.createElement(
+            "g",
+            { key: i },
+            (keys || []).map((k, ki) => {
+              const val = d[k] || 0, bh = val / maxV * H;
+              const bx = x0 + ki * (bW + 2) + 2, by = PT + H - bh;
+              return React.createElement("rect", { key: ki, x: bx, y: by, width: bW, height: Math.max(bh, 1), fill: (colors || [])[ki] || "#C9A84C", rx: "2" });
+            }),
+            React.createElement(
+              "text",
+              { x: x0 + cW / 2, y: H + PT + 14, textAnchor: "middle", fontSize: "9", fill: "#94A3B8" },
+              String(d.label || d[Object.keys(d)[0]] || "").slice(0, 5)
+            )
+          );
+        })
+      )
+    );
+  }
+  const ResponsiveContainer = ({ children, height }) => React.createElement("div", { style: { width: "100%", height: height || 160 } }, children);
+  const BarChart = function({ data, children }) {
+    const bars = [];
+    React.Children.forEach(children, (c) => {
+      if (c && c.props && c.props.dataKey) bars.push(c);
+    });
+    return React.createElement(MiniBarChart, { data, keys: bars.map((b) => b.props.dataKey), colors: bars.map((b) => b.props.fill), height: 160 });
+  };
+  const Bar = function(p) {
+    return null;
+  };
   const XAxis = () => null;
   const YAxis = () => null;
   const Tooltip = () => null;
@@ -68,7 +203,7 @@ var EliteBundle = (() => {
     info: "#3B82F6",
     purple: "#8B5CF6"
   };
-  const CATEGORIES = ["Parfum Homme", "Chaussures", "Ceinture", "Portefeuille", "Lunettes", "Bijou Homme", "Divers"];
+  const CATEGORIES = ["Habits", "Chaussures", "Montre", "Accessoires", "Parfum Homme", "Divers"];
   const DEP_TYPES = ["Loyer / Charges fixes", "Transport / Livraison", "Frais divers (eau, \xE9lec\u2026)", "Achat de stock (r\xE9appro)", "Autre"];
   const PAY_MODES = ["Esp\xE8ces", "Orange Money", "Cr\xE9dit client"];
   const PAY_COLOR = { "Esp\xE8ces": T.success, "Orange Money": "#FF6600", "Cr\xE9dit client": T.warning };
@@ -150,38 +285,30 @@ var EliteBundle = (() => {
   };
   const SEED = {
     products: [
-      // ── Importé depuis inventaires_DE_2024.xlsx (30/09/2021) ──
-      // Prix achat = prix unitaire fichier · Prix vente = achat × ~1.35 (marge 35%)
-      { id: "p1", name: "Pantalons Jeans", category: "Divers", buy: 75e3, sell: 1e5, qty: 281, alert: 20, supplier: "" },
-      { id: "p2", name: "Pantalons Kaki / Jogging", category: "Divers", buy: 75e3, sell: 1e5, qty: 94, alert: 10, supplier: "" },
-      { id: "p3", name: "Pantalons Tissu", category: "Divers", buy: 6e4, sell: 8e4, qty: 18, alert: 5, supplier: "" },
-      { id: "p4", name: "Culottes", category: "Divers", buy: 65e3, sell: 9e4, qty: 52, alert: 8, supplier: "" },
-      { id: "p5", name: "Chemises Simple", category: "Divers", buy: 55e3, sell: 75e3, qty: 138, alert: 15, supplier: "" },
-      { id: "p6", name: "Chemises Emball\xE9es", category: "Divers", buy: 55e3, sell: 75e3, qty: 65, alert: 10, supplier: "" },
-      { id: "p7", name: "T-Shirts Originaux", category: "Divers", buy: 55e3, sell: 75e3, qty: 121, alert: 15, supplier: "" },
-      { id: "p8", name: "Lacoste", category: "Divers", buy: 55e3, sell: 8e4, qty: 87, alert: 10, supplier: "" },
-      { id: "p9", name: "Blazers", category: "Divers", buy: 14e4, sell: 195e3, qty: 9, alert: 3, supplier: "" },
-      { id: "p10", name: "Jacket", category: "Divers", buy: 15e4, sell: 21e4, qty: 10, alert: 3, supplier: "" },
-      { id: "p11", name: "Pile", category: "Divers", buy: 85e3, sell: 115e3, qty: 25, alert: 5, supplier: "" },
-      { id: "p12", name: "F\xE9tiche", category: "Divers", buy: 7500, sell: 1e4, qty: 53, alert: 10, supplier: "" },
-      { id: "p13", name: "F\xE9tiche Paquet", category: "Divers", buy: 35e3, sell: 5e4, qty: 49, alert: 8, supplier: "" },
-      { id: "p14", name: "Casquettes", category: "Divers", buy: 35e3, sell: 5e4, qty: 9, alert: 3, supplier: "" },
-      { id: "p15", name: "Ceintures", category: "Ceinture", buy: 535e3, sell: 7e5, qty: 1, alert: 1, supplier: "" },
-      { id: "p16", name: "D\xE9bardeurs 1", category: "Divers", buy: 36250, sell: 5e4, qty: 17, alert: 5, supplier: "" },
-      { id: "p17", name: "D\xE9bardeurs 2", category: "Divers", buy: 3e4, sell: 42e3, qty: 2, alert: 2, supplier: "" },
-      { id: "p18", name: "Sac", category: "Divers", buy: 14e4, sell: 195e3, qty: 3, alert: 1, supplier: "" },
-      { id: "p19", name: "Sac", category: "Divers", buy: 65e3, sell: 9e4, qty: 1, alert: 1, supplier: "" },
-      { id: "p20", name: "Sac", category: "Divers", buy: 16e4, sell: 22e4, qty: 2, alert: 1, supplier: "" },
-      { id: "p21", name: "Maillots", category: "Divers", buy: 11e4, sell: 15e4, qty: 39, alert: 8, supplier: "" },
-      { id: "p22", name: "Chaussures Repose-Pieds", category: "Chaussures", buy: 6e4, sell: 85e3, qty: 25, alert: 5, supplier: "" },
-      { id: "p23", name: "Jordan", category: "Chaussures", buy: 17e4, sell: 235e3, qty: 15, alert: 4, supplier: "" },
-      { id: "p24", name: "Air Force", category: "Chaussures", buy: 135e3, sell: 185e3, qty: 41, alert: 8, supplier: "" },
-      { id: "p25", name: "Souliers", category: "Chaussures", buy: 23e4, sell: 32e4, qty: 10, alert: 3, supplier: "" },
-      { id: "p26", name: "Mocassins", category: "Chaussures", buy: 15e4, sell: 21e4, qty: 26, alert: 5, supplier: "" },
-      { id: "p27", name: "Papillons", category: "Divers", buy: 25e3, sell: 35e3, qty: 3, alert: 2, supplier: "" },
-      { id: "p28", name: "Timberland", category: "Chaussures", buy: 28e4, sell: 39e4, qty: 1, alert: 1, supplier: "" },
-      { id: "p29", name: "Parfum", category: "Parfum Homme", buy: 7e4, sell: 1e5, qty: 3, alert: 2, supplier: "" },
-      { id: "p30", name: "Tapis", category: "Divers", buy: 58e4, sell: 78e4, qty: 11, alert: 2, supplier: "" }
+      // ── HABITS ──
+      { id: "p1", name: "Jeans", category: "Habits", buy: 75e3, sell: 1e5, qty: 281, alert: 20, supplier: "" },
+      { id: "p2", name: "Kaki", category: "Habits", buy: 75e3, sell: 1e5, qty: 94, alert: 10, supplier: "" },
+      { id: "p3", name: "Tissu", category: "Habits", buy: 6e4, sell: 8e4, qty: 18, alert: 5, supplier: "" },
+      { id: "p4", name: "T-shirt", category: "Habits", buy: 55e3, sell: 75e3, qty: 121, alert: 15, supplier: "" },
+      { id: "p5", name: "Lacoste", category: "Habits", buy: 55e3, sell: 8e4, qty: 87, alert: 10, supplier: "" },
+      { id: "p6", name: "Jacket", category: "Habits", buy: 15e4, sell: 21e4, qty: 10, alert: 3, supplier: "" },
+      { id: "p7", name: "Pile Simple", category: "Habits", buy: 36250, sell: 5e4, qty: 17, alert: 5, supplier: "" },
+      { id: "p8", name: "Capus", category: "Habits", buy: 3e4, sell: 42e3, qty: 2, alert: 2, supplier: "" },
+      { id: "p9", name: "Kaskete", category: "Habits", buy: 35e3, sell: 5e4, qty: 9, alert: 3, supplier: "" },
+      { id: "p10", name: "Chemise", category: "Habits", buy: 55e3, sell: 75e3, qty: 138, alert: 15, supplier: "" },
+      { id: "p11", name: "Sac", category: "Habits", buy: 14e4, sell: 195e3, qty: 6, alert: 2, supplier: "" },
+      // ── CHAUSSURES ──
+      { id: "p12", name: "Jordan", category: "Chaussures", buy: 17e4, sell: 235e3, qty: 15, alert: 4, supplier: "" },
+      { id: "p13", name: "Mocassin", category: "Chaussures", buy: 15e4, sell: 21e4, qty: 26, alert: 5, supplier: "" },
+      { id: "p14", name: "Paire Sport", category: "Chaussures", buy: 135e3, sell: 185e3, qty: 41, alert: 8, supplier: "" },
+      // ── MONTRE ──
+      { id: "p15", name: "Montre", category: "Montre", buy: 12e4, sell: 195e3, qty: 8, alert: 2, supplier: "" },
+      // ── AUTRES ──
+      { id: "p16", name: "F\xE9tiche", category: "Accessoires", buy: 7500, sell: 1e4, qty: 53, alert: 10, supplier: "" },
+      { id: "p17", name: "F\xE9tiche Paquet", category: "Accessoires", buy: 35e3, sell: 5e4, qty: 49, alert: 8, supplier: "" },
+      { id: "p18", name: "Ceinture", category: "Accessoires", buy: 25e3, sell: 45e3, qty: 15, alert: 4, supplier: "" },
+      { id: "p19", name: "Parfum", category: "Parfum Homme", buy: 7e4, sell: 1e5, qty: 3, alert: 2, supplier: "" },
+      { id: "p20", name: "Maillot", category: "Habits", buy: 11e4, sell: 15e4, qty: 39, alert: 8, supplier: "" }
     ],
     sales: [],
     expenses: [],
@@ -235,10 +362,27 @@ var EliteBundle = (() => {
       setter((prev) => {
         const next = typeof updater === "function" ? updater(prev) : updater;
         const current = loadData() || SEED;
-        save({ ...current, [key]: next });
+        const newData = { ...current, [key]: next };
+        save(newData);
+        saveToCloud(newData).catch(() => {
+        });
         return next;
       });
     };
+    useEffect(() => {
+      if (cloudLoaded) return;
+      loadFromCloud().then((data) => {
+        if (data) {
+          if (data.products) _setP(data.products);
+          if (data.sales) _setS(data.sales);
+          if (data.expenses) _setE(data.expenses);
+          if (data.debts) _setD(data.debts);
+          if (data.supplies) _setA(data.supplies);
+          if (data.clients) _setC(data.clients || []);
+        }
+        setCloudLoaded(true);
+      });
+    }, []);
     const setProducts = useCallback((v) => persist("products", v, _setP), []);
     const setSales = useCallback((v) => persist("sales", v, _setS), []);
     const setExpenses = useCallback((v) => persist("expenses", v, _setE), []);
@@ -326,6 +470,24 @@ var EliteBundle = (() => {
       return Object.values(map).map((p) => ({ ...p, margin: p.revenue - p.cogs, pct: p.revenue ? Math.round((p.revenue - p.cogs) / p.revenue * 100) : 0 })).sort((a, b) => b.margin - a.margin);
     }, [safeSales]);
     const needsReorder = useMemo(() => products.filter((p) => p.qty <= p.alert), [products]);
+    const stockValue = useMemo(() => ({
+      achat: products.reduce((s, p) => s + p.qty * p.buy, 0),
+      vente: products.reduce((s, p) => s + p.qty * p.sell, 0),
+      nbProduits: products.length,
+      nbArticles: products.reduce((s, p) => s + p.qty, 0)
+    }), [products]);
+    const stockMovements = useMemo(() => {
+      const mvts = [];
+      safeSales.filter((s) => s.status !== "annul\xE9e").forEach((s) => {
+        (s.items || []).forEach((it) => {
+          mvts.push({ date: s.date, type: "sortie", motif: "Vente", produit: it.name, qty: -it.qty, ref: s.id });
+        });
+      });
+      supplies.forEach((a) => {
+        mvts.push({ date: a.date, type: "entr\xE9e", motif: "Approvisionnement", produit: a.product_name, qty: +a.qty, ref: a.id });
+      });
+      return mvts.sort((a, b) => b.date.localeCompare(a.date));
+    }, [safeSales, supplies]);
     const clientStats = useMemo(() => {
       return clients.map((c) => {
         var _a;
@@ -353,7 +515,9 @@ var EliteBundle = (() => {
       monthlyStats,
       monthComparison,
       productMargins,
-      needsReorder
+      needsReorder,
+      stockValue,
+      stockMovements
     };
   }
   function exportExcel({ sales, products, expenses, debts, supplies }) {
@@ -465,7 +629,7 @@ var EliteBundle = (() => {
 .cr{background:#fff3cd;padding:6px;font-size:10px;margin-top:4px;border-radius:3px}
 .ft{text-align:center;font-size:9px;color:#888;margin-top:12px;border-top:1px dashed #aaa;padding-top:6px}
 @media print{body{padding:0}}</style></head><body>
-<div class="h"><div class="logo">DJINDJIN</div><div class="s">MODE HOMME</div><div class="s">Parfums \xB7 Montres \xB7 Accessoires</div></div>
+<div class="h"><div class="logo">DJINDJIN</div><div class="s">MODE HOMME</div><div class="s">Pr\xEAt-\xE0-porter & Accessoires</div></div>
 <div class="m"><div>\u{1F4C5} ${nowStr()}</div><div>\u{1F516} N\xB0 ${sale.id.toUpperCase().slice(-8)}</div><div>\u{1F464} ${sale.client || "Client passage"}${sale.clientPhone ? " \xB7 " + sale.clientPhone : ""}</div></div>
 <div class="d"></div>
 ${sale.items.map((it) => `<div class="it"><div>${it.name}</div><div class="r"><span>${it.qty} \xD7 ${fmt(it.sell)}</span><strong>${fmt(it.qty * it.sell)}</strong></div></div>`).join("")}
@@ -634,8 +798,8 @@ ${sale.payment === "Cr\xE9dit client" ? `<div class="cr">\u26A0\uFE0F Reste d\xF
       gap: 8
     } }, "\u{1F4BE} Re\xE7u N\xB0 ", sale.id.toUpperCase().slice(-8), " sauvegard\xE9 dans l'historique des ventes"));
   }
-  function DashboardPage({ kpis, monthlyStats, monthComparison: mc, productMargins, needsReorder }) {
-    return /* @__PURE__ */ React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 20 } }, /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("h1", { style: { margin: 0, fontSize: 22, fontWeight: 900, color: T.gold } }, "Tableau de bord"), /* @__PURE__ */ React.createElement("p", { style: { margin: "3px 0 0", color: T.muted, fontSize: 12 } }, "Vue financi\xE8re \xB7 donn\xE9es sauvegard\xE9es automatiquement \u{1F4BE}")), /* @__PURE__ */ React.createElement("div", { style: { display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(160px,1fr))", gap: 11 } }, /* @__PURE__ */ React.createElement(KPI, { icon: "\u{1F4B0}", label: "Chiffre d'affaires", value: fmt(kpis.totalRevenue), color: T.gold }), /* @__PURE__ */ React.createElement(KPI, { icon: "\u{1F4CA}", label: "Marge brute", value: fmt(kpis.grossProfit), color: T.success, sub: `Taux : ${kpis.grossPct}%` }), /* @__PURE__ */ React.createElement(KPI, { icon: "\u{1F9FE}", label: "D\xE9penses totales", value: fmt(kpis.totalExpenses), color: T.warning }), /* @__PURE__ */ React.createElement(KPI, { icon: "\u2696\uFE0F", label: "Dettes fournisseurs", value: fmt(kpis.supplierDebt), color: T.danger }), /* @__PURE__ */ React.createElement(
+  function DashboardPage({ kpis, monthlyStats, monthComparison: mc, productMargins, needsReorder, stockValue }) {
+    return /* @__PURE__ */ React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 20 } }, /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("h1", { style: { margin: 0, fontSize: 22, fontWeight: 900, color: T.gold } }, "Tableau de bord"), /* @__PURE__ */ React.createElement("p", { style: { margin: "3px 0 0", color: T.muted, fontSize: 12 } }, "Vue financi\xE8re \xB7 donn\xE9es sauvegard\xE9es automatiquement \u{1F4BE}")), /* @__PURE__ */ React.createElement("div", { style: { display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(160px,1fr))", gap: 11 } }, /* @__PURE__ */ React.createElement(KPI, { icon: "\u{1F4B0}", label: "Chiffre d'affaires", value: fmt(kpis.totalRevenue), color: T.gold }), /* @__PURE__ */ React.createElement(KPI, { icon: "\u{1F4CA}", label: "Marge brute", value: fmt(kpis.grossProfit), color: T.success, sub: `Taux : ${kpis.grossPct}%` }), /* @__PURE__ */ React.createElement(KPI, { icon: "\u{1F9FE}", label: "D\xE9penses totales", value: fmt(kpis.totalExpenses), color: T.warning }), /* @__PURE__ */ React.createElement(KPI, { icon: "\u2696\uFE0F", label: "Dettes fournisseurs", value: fmt(kpis.supplierDebt), color: T.danger }), /* @__PURE__ */ React.createElement(KPI, { icon: "\u{1F4E6}", label: "Valeur stock (achat)", value: fmt(stockValue.achat), color: T.info, sub: `${stockValue.nbArticles} articles \xB7 ${stockValue.nbProduits} produits` }), /* @__PURE__ */ React.createElement(
       KPI,
       {
         icon: kpis.netProfit >= 0 ? "\u2705" : "\u{1F534}",
@@ -655,7 +819,7 @@ ${sale.payment === "Cr\xE9dit client" ? `<div class="cr">\u26A0\uFE0F Reste d\xF
       borderRadius: 10
     } })), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: T.muted, marginTop: 4 } }, mc.forecast ? Math.min(Math.round(mc.curCA / mc.forecast * 100), 100) : 0, "% de la pr\xE9vision atteint"))))), /* @__PURE__ */ React.createElement(Card, null, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 13, fontWeight: 700, color: T.text, marginBottom: 14 } }, "\xC9volution sur 12 mois"), /* @__PURE__ */ React.createElement(ResponsiveContainer, { width: "100%", height: 190 }, /* @__PURE__ */ React.createElement(BarChart, { data: monthlyStats, barGap: 2 }, /* @__PURE__ */ React.createElement(CartesianGrid, { strokeDasharray: "3 3", stroke: T.border, vertical: false }), /* @__PURE__ */ React.createElement(XAxis, { dataKey: "label", ...axisP }), /* @__PURE__ */ React.createElement(YAxis, { tickFormatter: fmtK, ...axisP }), /* @__PURE__ */ React.createElement(Tooltip, { formatter: (v) => fmt(v), contentStyle: tooltipSt }), /* @__PURE__ */ React.createElement(Legend, { wrapperStyle: { fontSize: 11, color: T.muted } }), /* @__PURE__ */ React.createElement(Bar, { dataKey: "ca", name: "CA", fill: T.gold, radius: [3, 3, 0, 0] }), /* @__PURE__ */ React.createElement(Bar, { dataKey: "marge", name: "Marge brute", fill: T.success, radius: [3, 3, 0, 0] }), /* @__PURE__ */ React.createElement(Bar, { dataKey: "profit", name: "Profit net", fill: T.purple, radius: [3, 3, 0, 0] })))), /* @__PURE__ */ React.createElement("div", { style: { display: "grid", gridTemplateColumns: "1.3fr 1fr", gap: 16 } }, /* @__PURE__ */ React.createElement(Card, null, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 13, fontWeight: 700, color: T.text, marginBottom: 14 } }, "Top produits \u2014 Marge g\xE9n\xE9r\xE9e"), productMargins.slice(0, 5).map((p, i) => /* @__PURE__ */ React.createElement("div", { key: p.name, style: { display: "flex", alignItems: "center", gap: 10, marginBottom: 11 } }, /* @__PURE__ */ React.createElement("div", { style: { width: 22, height: 22, borderRadius: "50%", background: T.gold + "22", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, fontWeight: 800, color: T.gold } }, i + 1), /* @__PURE__ */ React.createElement("div", { style: { flex: 1, minWidth: 0 } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 12, fontWeight: 700, color: T.text, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" } }, p.name), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", justifyContent: "space-between", marginTop: 2 } }, /* @__PURE__ */ React.createElement("span", { style: { fontSize: 11, color: T.success, fontWeight: 700 } }, fmt(p.margin)), /* @__PURE__ */ React.createElement("span", { style: { fontSize: 10, color: T.muted } }, p.pct, "% \xB7 ", p.qty, " vendus")), /* @__PURE__ */ React.createElement("div", { style: { background: T.border, borderRadius: 10, height: 4, marginTop: 4 } }, /* @__PURE__ */ React.createElement("div", { style: { width: `${Math.min(p.pct, 100)}%`, background: p.pct >= 40 ? T.success : p.pct >= 20 ? T.warning : T.danger, height: 4, borderRadius: 10 } })))))), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 12 } }, /* @__PURE__ */ React.createElement(Card, { style: { borderLeft: `4px solid ${T.gold}`, padding: "12px 16px" } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, fontWeight: 700, color: T.gold, marginBottom: 6 } }, "\u{1F4D0} FORMULE B\xC9N\xC9FICE NET"), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: T.muted, fontFamily: "monospace", lineHeight: 2 } }, "CA \u2212 Achats \u2212 D\xE9penses \u2212 Dettes fourn.", /* @__PURE__ */ React.createElement("br", null), /* @__PURE__ */ React.createElement("span", { style: { color: kpis.netProfit >= 0 ? T.success : T.danger, fontWeight: 900, fontSize: 14 } }, "= ", fmt(kpis.netProfit)))), needsReorder.length > 0 && /* @__PURE__ */ React.createElement(Card, { style: { borderLeft: `4px solid ${T.danger}`, padding: "12px 16px" } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, fontWeight: 700, color: T.danger, marginBottom: 6 } }, "\u26A0\uFE0F ALERTES STOCK (", needsReorder.length, ")"), needsReorder.slice(0, 5).map((p) => /* @__PURE__ */ React.createElement("div", { key: p.id, style: { display: "flex", justifyContent: "space-between", fontSize: 11, marginBottom: 4 } }, /* @__PURE__ */ React.createElement("span", { style: { color: T.text } }, p.name), /* @__PURE__ */ React.createElement("span", { style: { color: T.danger, fontWeight: 700 } }, p.qty, "/", p.alert)))))));
   }
-  function CaissePage({ products, sales, setSales, setProducts, setDebts, userRole }) {
+  function CaissePage({ products, sales, setSales, setProducts, setDebts, setClients, userRole }) {
     var _a;
     const blank = { date: today(), client: "", clientPhone: "", payment: PAY_MODES[0], remise: 0, acompte: 0, note: "" };
     const [form, setForm] = useState(blank);
@@ -710,6 +874,13 @@ ${sale.payment === "Cr\xE9dit client" ? `<div class="cr">\u26A0\uFE0F Reste d\xF
       if (form.payment === "Cr\xE9dit client") {
         const rd = net - (+form.acompte || 0);
         if (rd > 0) setDebts((prev) => [...prev, { id: genId(), type: "client", name: form.client || "Client", amount: rd, due_date: "", paid: 0, note: `Cr\xE9dit \u2014 ${items.map((i) => i.name).join(", ")}` }]);
+      }
+      if (form.client && form.client.trim()) {
+        setClients((prev) => {
+          const exists = prev.find((c) => c.name.toLowerCase() === form.client.toLowerCase());
+          if (!exists) return [...prev, { id: genId(), name: form.client.trim(), phone: form.clientPhone || "", email: "", note: "" }];
+          return prev;
+        });
       }
       setSales((prev) => [sale, ...prev]);
       setItems([]);
@@ -1101,6 +1272,32 @@ ${sale.payment === "Cr\xE9dit client" ? `<div class="cr">\u26A0\uFE0F Reste d\xF
       { l: "Panier moyen", v: detail.salesCount ? fmt(Math.round(detail.totalSpent / detail.salesCount)) : fmt(0), c: T.success }
     ].map(({ l, v, c }) => /* @__PURE__ */ React.createElement("div", { key: l, style: { background: T.elevated, borderRadius: 10, padding: "10px 13px" } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: T.muted, marginBottom: 3 } }, l), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 16, fontWeight: 900, color: c } }, v)))), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 12, fontWeight: 700, color: T.muted, marginBottom: 8 } }, "HISTORIQUE DES ACHATS"), /* @__PURE__ */ React.createElement("div", { style: { maxHeight: 260, overflowY: "auto", borderRadius: 10, border: `1px solid ${T.border}` } }, /* @__PURE__ */ React.createElement("table", { style: { width: "100%", borderCollapse: "collapse", fontSize: 12 } }, /* @__PURE__ */ React.createElement("thead", null, /* @__PURE__ */ React.createElement("tr", { style: { background: T.elevated } }, ["Date", "Articles", "Total", "Paiement"].map((c) => /* @__PURE__ */ React.createElement(TH, { key: c, c })))), /* @__PURE__ */ React.createElement("tbody", null, clientSales(detail).length === 0 ? /* @__PURE__ */ React.createElement("tr", null, /* @__PURE__ */ React.createElement("td", { colSpan: 4, style: { padding: 20, textAlign: "center", color: T.muted } }, "Aucun achat")) : clientSales(detail).map((s, i) => /* @__PURE__ */ React.createElement(TRow, { key: s.id, i }, /* @__PURE__ */ React.createElement(TD, { style: { color: T.muted } }, s.date), /* @__PURE__ */ React.createElement(TD, { style: { color: T.text } }, (s.items || []).map((it) => `${it.name} \xD7${it.qty}`).join(", ")), /* @__PURE__ */ React.createElement(TD, { style: { fontFamily: "monospace", fontWeight: 700, color: T.gold } }, fmt(saleTotal(s))), /* @__PURE__ */ React.createElement(TD, null, /* @__PURE__ */ React.createElement(Badge, { label: s.payment, color: PAY_COLOR[s.payment] || T.muted, small: true })))))))));
   }
+  function exportBackup() {
+    const data = localStorage.getItem(LS) || JSON.stringify(SEED);
+    const blob = new Blob([data], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `djindjin_backup_${today()}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+  function importBackup(file, onSuccess, onError) {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const data = JSON.parse(e.target.result);
+        if (!data.products || !data.sales) throw new Error("Fichier invalide");
+        localStorage.setItem(LS, JSON.stringify(data));
+        onSuccess();
+      } catch (err) {
+        onError(err.message);
+      }
+    };
+    reader.readAsText(file);
+  }
   function LoginScreen({ onLogin }) {
     const [pin, setPin] = useState("");
     const [error, setError] = useState("");
@@ -1168,7 +1365,42 @@ ${sale.payment === "Cr\xE9dit client" ? `<div class="cr">\u26A0\uFE0F Reste d\xF
           boxSizing: "border-box"
         }
       }
-    ), error && /* @__PURE__ */ React.createElement("div", { style: { fontSize: 11, color: T.danger, marginTop: 5, fontWeight: 600 } }, error)), /* @__PURE__ */ React.createElement(Btn, { full: true, onClick: tryLogin, disabled: !pin, style: { padding: 13, fontSize: 14, justifyContent: "center" } }, "\u{1F510} Se connecter"), /* @__PURE__ */ React.createElement("div", { style: { marginTop: 20, background: T.elevated, borderRadius: 10, padding: "10px 12px", fontSize: 10, color: T.muted, lineHeight: 1.8 } }, /* @__PURE__ */ React.createElement("div", { style: { fontWeight: 700, color: T.text, marginBottom: 4 } }, "Comptes :"), /* @__PURE__ */ React.createElement("div", null, "\u{1F451} Admin \u2192 PIN : ", /* @__PURE__ */ React.createElement("strong", { style: { color: T.gold } }, "1234")), /* @__PURE__ */ React.createElement("div", null, "\u{1F9D1}\u200D\u{1F4BC} Caissier \u2192 PIN : ", /* @__PURE__ */ React.createElement("strong", { style: { color: T.info } }, "0000"))), /* @__PURE__ */ React.createElement("div", { style: { marginTop: 16, borderTop: `1px solid ${T.border}`, paddingTop: 14 } }, !resetDone ? /* @__PURE__ */ React.createElement(
+    ), error && /* @__PURE__ */ React.createElement("div", { style: { fontSize: 11, color: T.danger, marginTop: 5, fontWeight: 600 } }, error)), /* @__PURE__ */ React.createElement(Btn, { full: true, onClick: tryLogin, disabled: !pin, style: { padding: 13, fontSize: 14, justifyContent: "center" } }, "\u{1F510} Se connecter"), /* @__PURE__ */ React.createElement("div", { style: { marginTop: 20, background: T.elevated, borderRadius: 10, padding: "10px 12px", fontSize: 10, color: T.muted, lineHeight: 1.8 } }, /* @__PURE__ */ React.createElement("div", { style: { fontWeight: 700, color: T.text, marginBottom: 4 } }, "Comptes :"), /* @__PURE__ */ React.createElement("div", null, "\u{1F451} Admin \u2192 PIN : ", /* @__PURE__ */ React.createElement("strong", { style: { color: T.gold } }, "1234")), /* @__PURE__ */ React.createElement("div", null, "\u{1F9D1}\u200D\u{1F4BC} Caissier \u2192 PIN : ", /* @__PURE__ */ React.createElement("strong", { style: { color: T.info } }, "0000"))), /* @__PURE__ */ React.createElement("div", { style: { marginTop: 14, display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 } }, /* @__PURE__ */ React.createElement(
+      "button",
+      {
+        onClick: exportBackup,
+        style: {
+          background: T.gold + "18",
+          border: `1px solid ${T.gold}44`,
+          borderRadius: 10,
+          padding: "9px 10px",
+          fontSize: 11,
+          color: T.gold,
+          cursor: "pointer",
+          fontWeight: 600
+        }
+      },
+      "\u{1F4BE} Sauvegarder les donn\xE9es"
+    ), /* @__PURE__ */ React.createElement("label", { style: {
+      background: T.info + "18",
+      border: `1px solid ${T.info}44`,
+      borderRadius: 10,
+      padding: "9px 10px",
+      fontSize: 11,
+      color: T.info,
+      cursor: "pointer",
+      fontWeight: 600,
+      textAlign: "center",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center"
+    } }, "\u{1F4C2} Restaurer une sauvegarde", /* @__PURE__ */ React.createElement("input", { type: "file", accept: ".json", style: { display: "none" }, onChange: (e) => {
+      if (!e.target.files[0]) return;
+      importBackup(e.target.files[0], () => {
+        setError("\u2705 Restaur\xE9 ! Rechargement\u2026");
+        setTimeout(() => window.location.reload(), 1e3);
+      }, (msg) => setError("\u274C " + msg));
+    } }))), /* @__PURE__ */ React.createElement("div", { style: { marginTop: 12, borderTop: `1px solid ${T.border}`, paddingTop: 12 } }, !resetDone ? /* @__PURE__ */ React.createElement(
       "button",
       {
         onClick: resetData,
@@ -1187,12 +1419,119 @@ ${sale.payment === "Cr\xE9dit client" ? `<div class="cr">\u26A0\uFE0F Reste d\xF
       "\u{1F504} Erreur persistante ? R\xE9initialiser les donn\xE9es"
     ) : /* @__PURE__ */ React.createElement("div", { style: { textAlign: "center", fontSize: 12, color: T.success, fontWeight: 700 } }, "\u2705 Donn\xE9es r\xE9initialis\xE9es \u2014 rechargement\u2026"), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: T.muted, marginTop: 6, textAlign: "center" } }, "\u26A0\uFE0F Efface les donn\xE9es locales et recharge l'app"))));
   }
+  function InventairePage({ products, setProducts, stockValue, stockMovements }) {
+    const [tab, setTab] = useState("stock");
+    const [adjustModal, setAdjustModal] = useState(null);
+    const [adjForm, setAdjForm] = useState({ qty: "", motif: "Correction inventaire", note: "" });
+    const MOTIFS = ["Correction inventaire", "Perte / Casse", "Don / Offert", "Erreur de saisie", "Autre"];
+    const handleAdjust = () => {
+      if (!adjForm.qty || !adjustModal) return;
+      const newQty = Math.max(0, +adjForm.qty);
+      const diff = newQty - adjustModal.qty;
+      setProducts((prev) => prev.map((p) => p.id === adjustModal.id ? { ...p, qty: newQty } : p));
+      setAdjustModal(null);
+      setAdjForm({ qty: "", motif: "Correction inventaire", note: "" });
+    };
+    const exportInventaire = () => {
+      const rows = ["Produit,Cat\xE9gorie,Stock actuel,P. Achat,P. Vente,Val. stock achat,Val. stock vente,Seuil alerte,Statut"];
+      products.forEach((p) => {
+        const st = p.qty === 0 ? "Rupture" : p.qty <= p.alert ? "Critique" : p.qty <= p.alert * 2 ? "Faible" : "OK";
+        rows.push([p.name, p.category, p.qty, p.buy, p.sell, p.qty * p.buy, p.qty * p.sell, p.alert, st].join(","));
+      });
+      const b = new Blob([rows.join("\n")], { type: "text/csv" });
+      const u = URL.createObjectURL(b);
+      const a = document.createElement("a");
+      a.href = u;
+      a.download = `inventaire_${today()}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    };
+    const printInventaire = () => {
+      const rows = products.map((p) => `<tr><td>${p.name}</td><td>${p.category}</td><td style="text-align:center;font-weight:700">${p.qty}</td><td>${fmt(p.buy)}</td><td>${fmt(p.qty * p.buy)}</td><td style="color:${p.qty === 0 ? "#EF4444" : p.qty <= p.alert ? "#F59E0B" : "#10B981"}">${p.qty === 0 ? "Rupture" : p.qty <= p.alert ? "Critique" : "OK"}</td></tr>`).join("");
+      const w = window.open("", "_blank", "width=800,height=600");
+      w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Inventaire</title>
+<style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:Arial,sans-serif;padding:20px;font-size:12px}
+h1{font-size:18px;margin-bottom:4px}p{color:#666;margin-bottom:14px;font-size:11px}
+table{width:100%;border-collapse:collapse}th{background:#0A0F1E;color:#fff;padding:8px;text-align:left}
+td{padding:7px 8px;border-bottom:1px solid #eee}tr:nth-child(even){background:#f9f9f9}
+.footer{margin-top:20px;font-size:10px;color:#999;text-align:center}
+@media print{body{padding:0}}</style></head><body>
+<h1>DJINDJIN \u2014 Rapport d'inventaire</h1>
+<p>Date : ${nowStr()} \xB7 ${products.length} produits \xB7 ${stockValue.nbArticles} articles \xB7 Valeur stock : ${fmt(stockValue.achat)}</p>
+<table><thead><tr><th>Produit</th><th>Cat\xE9gorie</th><th>Stock</th><th>P. Achat</th><th>Valeur stock</th><th>Statut</th></tr></thead>
+<tbody>${rows}</tbody></table>
+<div class="footer">DJINDJIN \u2014 Mode Homme</div>
+</body></html>`);
+      w.document.close();
+      w.focus();
+      setTimeout(() => w.print(), 400);
+    };
+    const byCategory = useMemo(() => {
+      const map = {};
+      products.forEach((p) => {
+        if (!map[p.category]) map[p.category] = { name: p.category, valeur: 0, articles: 0, produits: 0, alertes: 0 };
+        map[p.category].valeur += p.qty * p.buy;
+        map[p.category].articles += p.qty;
+        map[p.category].produits += 1;
+        if (p.qty <= p.alert) map[p.category].alertes += 1;
+      });
+      return Object.values(map).sort((a, b) => b.valeur - a.valeur);
+    }, [products]);
+    return /* @__PURE__ */ React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 16 } }, /* @__PURE__ */ React.createElement("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 10 } }, /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("h1", { style: { margin: 0, fontSize: 22, fontWeight: 900, color: T.gold } }, "\u{1F4E6} Inventaire & Stock"), /* @__PURE__ */ React.createElement("p", { style: { margin: "3px 0 0", color: T.muted, fontSize: 12 } }, stockValue.nbProduits, " produits \xB7 ", stockValue.nbArticles, " articles")), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 8, flexWrap: "wrap" } }, /* @__PURE__ */ React.createElement(Btn, { variant: "ghost", small: true, onClick: exportInventaire }, "\u{1F4E5} Export CSV"), /* @__PURE__ */ React.createElement(Btn, { variant: "ghost", small: true, onClick: printInventaire }, "\u{1F5A8}\uFE0F Imprimer"))), /* @__PURE__ */ React.createElement("div", { style: { display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(150px,1fr))", gap: 10 } }, /* @__PURE__ */ React.createElement(Card, { style: { borderLeft: `3px solid ${T.info}`, padding: "12px 14px" } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: T.muted, marginBottom: 3 } }, "VALEUR STOCK (ACHAT)"), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 18, fontWeight: 900, color: T.info } }, fmt(stockValue.achat)), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: T.muted, marginTop: 2 } }, "Capital immobilis\xE9")), /* @__PURE__ */ React.createElement(Card, { style: { borderLeft: `3px solid ${T.gold}`, padding: "12px 14px" } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: T.muted, marginBottom: 3 } }, "VALEUR STOCK (VENTE)"), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 18, fontWeight: 900, color: T.gold } }, fmt(stockValue.vente)), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: T.muted, marginTop: 2 } }, "Si tout vendu")), /* @__PURE__ */ React.createElement(Card, { style: { borderLeft: `3px solid ${T.success}`, padding: "12px 14px" } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: T.muted, marginBottom: 3 } }, "B\xC9N\xC9FICE POTENTIEL"), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 18, fontWeight: 900, color: T.success } }, fmt(stockValue.vente - stockValue.achat)), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: T.muted, marginTop: 2 } }, "Marge sur stock")), /* @__PURE__ */ React.createElement(Card, { style: { borderLeft: `3px solid ${T.danger}`, padding: "12px 14px" } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: T.muted, marginBottom: 3 } }, "ALERTES STOCK"), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 18, fontWeight: 900, color: T.danger } }, products.filter((p) => p.qty <= p.alert).length), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: T.muted, marginTop: 2 } }, "Produits sous seuil"))), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 8 } }, [{ k: "stock", l: "\u{1F4CB} Stock actuel" }, { k: "cat", l: "\u{1F4C2} Par cat\xE9gorie" }, { k: "mvt", l: "\u{1F504} Mouvements" }].map((t) => /* @__PURE__ */ React.createElement(
+      "button",
+      {
+        key: t.k,
+        onClick: () => setTab(t.k),
+        style: {
+          padding: "7px 15px",
+          borderRadius: 20,
+          border: `1px solid ${tab === t.k ? T.gold : T.border}`,
+          background: tab === t.k ? T.gold + "15" : "transparent",
+          color: tab === t.k ? T.gold : T.muted,
+          fontWeight: 700,
+          fontSize: 12,
+          cursor: "pointer"
+        }
+      },
+      t.l
+    ))), tab === "stock" && /* @__PURE__ */ React.createElement(Card, { style: { padding: 0, overflow: "hidden" } }, /* @__PURE__ */ React.createElement("div", { style: { overflowX: "auto" } }, /* @__PURE__ */ React.createElement("table", { style: { width: "100%", borderCollapse: "collapse", fontSize: 12 } }, /* @__PURE__ */ React.createElement("thead", null, /* @__PURE__ */ React.createElement("tr", { style: { background: T.elevated } }, ["Produit", "Cat\xE9gorie", "Stock", "Seuil", "Statut", "Val. achat", "Val. vente", "Ajuster"].map((c) => /* @__PURE__ */ React.createElement(TH, { key: c, c })))), /* @__PURE__ */ React.createElement("tbody", null, products.map((p, i) => {
+      const st = p.qty === 0 ? "Rupture" : p.qty <= p.alert ? "Critique" : p.qty <= p.alert * 2 ? "Faible" : "OK";
+      const stC = { OK: T.success, Faible: T.warning, Critique: T.danger, Rupture: T.muted };
+      return /* @__PURE__ */ React.createElement(TRow, { key: p.id, i }, /* @__PURE__ */ React.createElement(TD, { style: { fontWeight: 700, color: T.text } }, p.name), /* @__PURE__ */ React.createElement(TD, { style: { color: T.muted } }, p.category), /* @__PURE__ */ React.createElement(TD, { style: { fontWeight: 900, fontSize: 15, color: p.qty === 0 ? T.danger : p.qty <= p.alert ? T.warning : T.text, textAlign: "center" } }, p.qty), /* @__PURE__ */ React.createElement(TD, { style: { textAlign: "center", color: T.muted } }, p.alert), /* @__PURE__ */ React.createElement(TD, null, /* @__PURE__ */ React.createElement(Badge, { label: st, color: stC[st] })), /* @__PURE__ */ React.createElement(TD, { style: { fontFamily: "monospace" } }, fmt(p.qty * p.buy)), /* @__PURE__ */ React.createElement(TD, { style: { fontFamily: "monospace", color: T.gold } }, fmt(p.qty * p.sell)), /* @__PURE__ */ React.createElement(TD, null, /* @__PURE__ */ React.createElement(Btn, { small: true, variant: "ghost", onClick: () => {
+        setAdjustModal(p);
+        setAdjForm({ qty: String(p.qty), motif: "Correction inventaire", note: "" });
+      } }, "\u270F\uFE0F Ajuster")));
+    }))))), tab === "cat" && /* @__PURE__ */ React.createElement("div", { style: { display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(220px,1fr))", gap: 12 } }, byCategory.map((cat) => /* @__PURE__ */ React.createElement(Card, { key: cat.name, style: { borderLeft: `3px solid ${T.gold}` } }, /* @__PURE__ */ React.createElement("div", { style: { fontWeight: 800, fontSize: 14, color: T.text, marginBottom: 10 } }, cat.name), [
+      ["Produits", cat.produits, T.muted],
+      ["Articles en stock", cat.articles, T.info],
+      ["Valeur stock", fmt(cat.valeur), T.gold],
+      ["Alertes", cat.alertes > 0 ? cat.alertes + " \u26A0\uFE0F" : "\u2705 Aucune", cat.alertes > 0 ? T.danger : T.success]
+    ].map(([l, v, c]) => /* @__PURE__ */ React.createElement("div", { key: l, style: { display: "flex", justifyContent: "space-between", marginBottom: 5, fontSize: 12 } }, /* @__PURE__ */ React.createElement("span", { style: { color: T.muted } }, l), /* @__PURE__ */ React.createElement("span", { style: { fontWeight: 700, color: c } }, v)))))), tab === "mvt" && /* @__PURE__ */ React.createElement(Card, { style: { padding: 0, overflow: "hidden" } }, /* @__PURE__ */ React.createElement("div", { style: { padding: "10px 14px", borderBottom: `1px solid ${T.border}`, fontSize: 12, fontWeight: 700, color: T.text } }, "Historique des mouvements (", stockMovements.length, ")"), stockMovements.length === 0 ? /* @__PURE__ */ React.createElement("div", { style: { padding: 28, textAlign: "center", color: T.muted } }, "Aucun mouvement enregistr\xE9") : /* @__PURE__ */ React.createElement("div", { style: { overflowX: "auto" } }, /* @__PURE__ */ React.createElement("table", { style: { width: "100%", borderCollapse: "collapse", fontSize: 12 } }, /* @__PURE__ */ React.createElement("thead", null, /* @__PURE__ */ React.createElement("tr", { style: { background: T.elevated } }, ["Date", "Type", "Motif", "Produit", "Quantit\xE9"].map((c) => /* @__PURE__ */ React.createElement(TH, { key: c, c })))), /* @__PURE__ */ React.createElement("tbody", null, stockMovements.map((m, i) => /* @__PURE__ */ React.createElement(TRow, { key: i, i }, /* @__PURE__ */ React.createElement(TD, { style: { color: T.muted, whiteSpace: "nowrap" } }, m.date), /* @__PURE__ */ React.createElement(TD, null, /* @__PURE__ */ React.createElement(Badge, { label: m.type, color: m.type === "entr\xE9e" ? T.success : T.danger })), /* @__PURE__ */ React.createElement(TD, { style: { color: T.muted } }, m.motif), /* @__PURE__ */ React.createElement(TD, { style: { fontWeight: 600, color: T.text } }, m.produit), /* @__PURE__ */ React.createElement(TD, { style: { fontWeight: 800, color: m.qty > 0 ? T.success : T.danger, fontFamily: "monospace" } }, m.qty > 0 ? "+" : "", m.qty))))))), adjustModal && /* @__PURE__ */ React.createElement(Modal, { title: `\u270F\uFE0F Ajuster le stock \u2014 ${adjustModal.name}`, onClose: () => setAdjustModal(null), width: 380 }, /* @__PURE__ */ React.createElement("div", { style: { background: T.elevated, borderRadius: 10, padding: "11px 14px", marginBottom: 14, display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, fontSize: 12 } }, /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("div", { style: { color: T.muted, marginBottom: 2 } }, "Stock actuel"), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 18, fontWeight: 900, color: T.text } }, adjustModal.qty)), /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("div", { style: { color: T.muted, marginBottom: 2 } }, "Seuil alerte"), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 18, fontWeight: 900, color: T.warning } }, adjustModal.alert))), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 11 } }, /* @__PURE__ */ React.createElement(
+      Input,
+      {
+        label: "Nouveau stock (quantit\xE9 exacte)",
+        type: "number",
+        min: "0",
+        value: adjForm.qty,
+        onChange: (e) => setAdjForm((f) => ({ ...f, qty: e.target.value }))
+      }
+    ), adjForm.qty !== String(adjustModal.qty) && adjForm.qty !== "" && /* @__PURE__ */ React.createElement("div", { style: {
+      fontSize: 12,
+      fontWeight: 700,
+      padding: "6px 10px",
+      borderRadius: 8,
+      background: +adjForm.qty - adjustModal.qty >= 0 ? T.success + "18" : T.danger + "18",
+      color: +adjForm.qty - adjustModal.qty >= 0 ? T.success : T.danger
+    } }, "Diff\xE9rence : ", +adjForm.qty - adjustModal.qty >= 0 ? "+" : "", +adjForm.qty - adjustModal.qty, " unit\xE9s"), /* @__PURE__ */ React.createElement(Sel, { label: "Motif", value: adjForm.motif, onChange: (e) => setAdjForm((f) => ({ ...f, motif: e.target.value })), options: MOTIFS }), /* @__PURE__ */ React.createElement(Input, { label: "Note (optionnel)", value: adjForm.note, onChange: (e) => setAdjForm((f) => ({ ...f, note: e.target.value })), placeholder: "D\xE9tails\u2026" })), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", justifyContent: "flex-end", gap: 10, marginTop: 16 } }, /* @__PURE__ */ React.createElement(Btn, { variant: "ghost", onClick: () => setAdjustModal(null) }, "Annuler"), /* @__PURE__ */ React.createElement(Btn, { onClick: handleAdjust, disabled: !adjForm.qty || adjForm.qty === String(adjustModal.qty) }, "\u2705 Valider l'ajustement"))));
+  }
   const NAV = [
     { id: "dashboard", icon: "\u{1F4CA}", label: "Tableau de bord", roles: ["admin"] },
-    { id: "caisse", icon: "\u{1F6D2}", label: "Caisse client", roles: ["admin", "caissier"] },
+    { id: "caisse", icon: "\u{1F6D2}", label: "Caisse", roles: ["admin", "caissier"] },
     { id: "clients", icon: "\u{1F464}", label: "Clients", roles: ["admin", "caissier"] },
-    { id: "approv", icon: "\u{1F4E6}", label: "Approvisionnement", roles: ["admin"] },
-    { id: "products", icon: "\u{1F576}\uFE0F", label: "Produits", roles: ["admin"] },
+    { id: "inventaire", icon: "\u{1F4E6}", label: "Inventaire", roles: ["admin"] },
+    { id: "approv", icon: "\u{1F69A}", label: "Approvisionnement", roles: ["admin"] },
+    { id: "products", icon: "\u{1F3F7}\uFE0F", label: "Produits", roles: ["admin"] },
     { id: "expenses", icon: "\u{1F9FE}", label: "D\xE9penses", roles: ["admin"] },
     { id: "debts", icon: "\u2696\uFE0F", label: "Dettes & Cr\xE9ances", roles: ["admin"] },
     { id: "rapports", icon: "\u{1F4C8}", label: "Rapport des ventes", roles: ["admin"] }
@@ -1200,6 +1539,7 @@ ${sale.payment === "Cr\xE9dit client" ? `<div class="cr">\u26A0\uFE0F Reste d\xF
   function App() {
     const [user, setUser] = useState(null);
     const [page, setPage] = useState("caisse");
+    const [sideOpen, setSideOpen] = useState(false);
     const store = useStore();
     const alerts = store.needsReorder.length;
     const overdues = store.debts.filter((d) => d.type === "supplier" && d.due_date && new Date(d.due_date) < /* @__PURE__ */ new Date() && d.paid < d.amount).length;
@@ -1208,13 +1548,30 @@ ${sale.payment === "Cr\xE9dit client" ? `<div class="cr">\u26A0\uFE0F Reste d\xF
       setPage(u.role === "admin" ? "dashboard" : "caisse");
     } });
     const visibleNav = NAV.filter((n) => n.roles.includes(user.role));
-    return /* @__PURE__ */ React.createElement("div", { style: { display: "flex", minHeight: "100vh", background: T.bg, fontFamily: "'Inter',system-ui,sans-serif", color: T.text } }, /* @__PURE__ */ React.createElement("div", { style: { width: 220, background: T.surface, borderRight: `1px solid ${T.border}`, display: "flex", flexDirection: "column", position: "fixed", height: "100vh", zIndex: 100, overflowY: "auto" } }, /* @__PURE__ */ React.createElement("div", { style: { padding: "18px 16px 12px", borderBottom: `1px solid ${T.border}` } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 9, color: T.muted, letterSpacing: 2, marginBottom: 2 } }, "BOUTIQUE \u2014 MODE HOMME"), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 21, fontWeight: 900, color: T.gold, lineHeight: 1, letterSpacing: 2 } }, "DJINDJIN"), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 9, color: T.muted, marginTop: 2 } }, "Pr\xEAt-\xE0-porter & Accessoires")), /* @__PURE__ */ React.createElement("div", { style: { padding: "10px 14px", borderBottom: `1px solid ${T.border}`, display: "flex", alignItems: "center", gap: 10 } }, /* @__PURE__ */ React.createElement("div", { style: { width: 30, height: 30, borderRadius: "50%", background: user.color + "22", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14 } }, user.role === "admin" ? "\u{1F451}" : "\u{1F9D1}\u200D\u{1F4BC}"), /* @__PURE__ */ React.createElement("div", { style: { flex: 1 } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 12, fontWeight: 700, color: T.text } }, user.name), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 9, color: user.color, fontWeight: 700, textTransform: "uppercase", letterSpacing: 0.5 } }, user.role)), /* @__PURE__ */ React.createElement("button", { onClick: () => setUser(null), style: { background: "none", border: "none", color: T.muted, cursor: "pointer", fontSize: 13, padding: 4 }, title: "D\xE9connexion" }, "\u23CF")), /* @__PURE__ */ React.createElement("nav", { style: { flex: 1, padding: "10px 7px" } }, visibleNav.map((item) => {
+    const goTo = (id) => {
+      setPage(id);
+      setSideOpen(false);
+    };
+    return /* @__PURE__ */ React.createElement("div", { style: { display: "flex", minHeight: "100vh", background: T.bg, fontFamily: "'Inter',system-ui,sans-serif", color: T.text } }, sideOpen && /* @__PURE__ */ React.createElement("div", { style: { position: "fixed", inset: 0, background: "rgba(0,0,0,.6)", zIndex: 99 }, onClick: () => setSideOpen(false) }), /* @__PURE__ */ React.createElement("div", { style: {
+      width: 220,
+      background: T.surface,
+      borderRight: `1px solid ${T.border}`,
+      display: "flex",
+      flexDirection: "column",
+      position: "fixed",
+      height: "100vh",
+      zIndex: 100,
+      overflowY: "auto",
+      transform: sideOpen ? "translateX(0)" : "translateX(-100%)",
+      transition: "transform .25s ease",
+      "@media(min-width:768px)": { transform: "translateX(0)" }
+    } }, /* @__PURE__ */ React.createElement("div", { style: { padding: "18px 16px 12px", borderBottom: `1px solid ${T.border}` } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 9, color: T.muted, letterSpacing: 2, marginBottom: 2 } }, "BOUTIQUE \u2014 MODE HOMME"), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 21, fontWeight: 900, color: T.gold, lineHeight: 1, letterSpacing: 2, fontFamily: "'Cormorant Garamond',serif" } }, "DJINDJIN"), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 9, color: T.muted, marginTop: 2 } }, "Pr\xEAt-\xE0-porter & Accessoires")), /* @__PURE__ */ React.createElement("div", { style: { padding: "10px 14px", borderBottom: `1px solid ${T.border}`, display: "flex", alignItems: "center", gap: 10 } }, /* @__PURE__ */ React.createElement("div", { style: { width: 30, height: 30, borderRadius: "50%", background: user.color + "22", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14 } }, user.role === "admin" ? "\u{1F451}" : "\u{1F9D1}\u200D\u{1F4BC}"), /* @__PURE__ */ React.createElement("div", { style: { flex: 1 } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 12, fontWeight: 700, color: T.text } }, user.name), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 9, color: user.color, fontWeight: 700, textTransform: "uppercase", letterSpacing: 0.5 } }, user.role)), /* @__PURE__ */ React.createElement("button", { onClick: () => setUser(null), style: { background: "none", border: "none", color: T.muted, cursor: "pointer", fontSize: 13, padding: 4 }, title: "D\xE9connexion" }, "\u23CF")), /* @__PURE__ */ React.createElement("nav", { style: { flex: 1, padding: "10px 7px" } }, visibleNav.map((item) => {
       const badge = item.id === "approv" && alerts ? alerts : item.id === "debts" && overdues ? overdues : 0;
       return /* @__PURE__ */ React.createElement(
         "button",
         {
           key: item.id,
-          onClick: () => setPage(item.id),
+          onClick: () => goTo(item.id),
           style: {
             width: "100%",
             display: "flex",
@@ -1235,16 +1592,61 @@ ${sale.payment === "Cr\xE9dit client" ? `<div class="cr">\u26A0\uFE0F Reste d\xF
         /* @__PURE__ */ React.createElement("span", { style: { display: "flex", alignItems: "center", gap: 8 } }, /* @__PURE__ */ React.createElement("span", { style: { fontSize: 15 } }, item.icon), item.label),
         badge > 0 && /* @__PURE__ */ React.createElement("span", { style: { background: T.danger, color: "#fff", fontSize: 9, fontWeight: 800, padding: "2px 6px", borderRadius: 20, minWidth: 16, textAlign: "center" } }, badge)
       );
-    })), user.role === "admin" && /* @__PURE__ */ React.createElement("div", { style: { padding: "11px 14px 16px", borderTop: `1px solid ${T.border}` } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 9, color: T.muted, letterSpacing: 1, marginBottom: 3 } }, "B\xC9N\xC9FICE NET ESTIM\xC9"), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 18, fontWeight: 900, color: store.kpis.netProfit >= 0 ? T.success : T.danger } }, fmt(store.kpis.netProfit)), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 9, color: T.muted, marginTop: 4 } }, "\u{1F4BE} Donn\xE9es sauvegard\xE9es auto"))), /* @__PURE__ */ React.createElement("main", { style: { marginLeft: 220, flex: 1, padding: "24px 28px", minHeight: "100vh", boxSizing: "border-box" } }, page === "dashboard" && /* @__PURE__ */ React.createElement(DashboardPage, { kpis: store.kpis, monthlyStats: store.monthlyStats, monthComparison: store.monthComparison, productMargins: store.productMargins, needsReorder: store.needsReorder }), page === "caisse" && /* @__PURE__ */ React.createElement(CaissePage, { products: store.products, sales: store.sales, setSales: store.setSales, setProducts: store.setProducts, setDebts: store.setDebts, userRole: user.role }), page === "clients" && /* @__PURE__ */ React.createElement(ClientsPage, { clientStats: store.clientStats, setClients: store.setClients, sales: store.sales }), page === "approv" && /* @__PURE__ */ React.createElement(ApprovPage, { products: store.products, setProducts: store.setProducts, supplies: store.supplies, setSupplies: store.setSupplies, setDebts: store.setDebts, needsReorder: store.needsReorder }), page === "products" && /* @__PURE__ */ React.createElement(ProductsPage, { products: store.products, setProducts: store.setProducts }), page === "expenses" && /* @__PURE__ */ React.createElement(ExpensesPage, { expenses: store.expenses, setExpenses: store.setExpenses }), page === "debts" && /* @__PURE__ */ React.createElement(DebtsPage, { debts: store.debts, setDebts: store.setDebts }), page === "rapports" && /* @__PURE__ */ React.createElement(RapportsPage, { sales: store.sales, expenses: store.expenses, debts: store.debts, products: store.products, supplies: store.supplies })));
+    })), user.role === "admin" && /* @__PURE__ */ React.createElement("div", { style: { padding: "11px 14px 16px", borderTop: `1px solid ${T.border}` } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 9, color: T.muted, letterSpacing: 1, marginBottom: 3 } }, "B\xC9N\xC9FICE NET ESTIM\xC9"), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 18, fontWeight: 900, color: store.kpis.netProfit >= 0 ? T.success : T.danger } }, fmt(store.kpis.netProfit)), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 9, color: T.muted, marginTop: 4 } }, "\u{1F4BE} Donn\xE9es sauvegard\xE9es auto"), /* @__PURE__ */ React.createElement("button", { onClick: exportBackup, style: {
+      marginTop: 8,
+      width: "100%",
+      background: T.gold + "18",
+      border: `1px solid ${T.gold}33`,
+      borderRadius: 8,
+      padding: "6px 10px",
+      fontSize: 10,
+      color: T.gold,
+      cursor: "pointer",
+      fontWeight: 600
+    } }, "\u{1F4BE} Exporter sauvegarde"))), /* @__PURE__ */ React.createElement("div", { style: {
+      position: "fixed",
+      top: 0,
+      left: 0,
+      right: 0,
+      height: 52,
+      background: T.surface,
+      borderBottom: `1px solid ${T.border}`,
+      zIndex: 98,
+      display: "flex",
+      alignItems: "center",
+      padding: "0 16px",
+      gap: 12
+    } }, /* @__PURE__ */ React.createElement(
+      "button",
+      {
+        onClick: () => setSideOpen((s) => !s),
+        style: {
+          background: "none",
+          border: "none",
+          color: T.text,
+          fontSize: 22,
+          cursor: "pointer",
+          width: 36,
+          height: 36,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          borderRadius: 8,
+          background: sideOpen ? T.elevated : "transparent"
+        }
+      },
+      "\u2630"
+    ), /* @__PURE__ */ React.createElement("div", { style: { fontFamily: "'Cormorant Garamond',serif", fontSize: 20, fontWeight: 700, color: T.gold, letterSpacing: 2 } }, "DJINDJIN"), /* @__PURE__ */ React.createElement("div", { style: { marginLeft: "auto", display: "flex", alignItems: "center", gap: 8 } }, alerts > 0 && /* @__PURE__ */ React.createElement("span", { style: { background: T.danger, color: "#fff", fontSize: 10, fontWeight: 800, padding: "3px 8px", borderRadius: 20 } }, alerts, " \u26A0\uFE0F"), /* @__PURE__ */ React.createElement("span", { style: { fontSize: 12, color: T.muted } }, user.name))), /* @__PURE__ */ React.createElement("main", { style: { marginLeft: 0, flex: 1, padding: "68px 16px 24px", minHeight: "100vh", boxSizing: "border-box" } }, page === "dashboard" && /* @__PURE__ */ React.createElement(DashboardPage, { kpis: store.kpis, monthlyStats: store.monthlyStats, monthComparison: store.monthComparison, productMargins: store.productMargins, needsReorder: store.needsReorder, stockValue: store.stockValue }), page === "caisse" && /* @__PURE__ */ React.createElement(CaissePage, { products: store.products, sales: store.sales, setSales: store.setSales, setProducts: store.setProducts, setDebts: store.setDebts, setClients: store.setClients, userRole: user.role }), page === "clients" && /* @__PURE__ */ React.createElement(ClientsPage, { clientStats: store.clientStats, setClients: store.setClients, sales: store.sales }), page === "inventaire" && /* @__PURE__ */ React.createElement(InventairePage, { products: store.products, setProducts: store.setProducts, stockValue: store.stockValue, stockMovements: store.stockMovements }), page === "approv" && /* @__PURE__ */ React.createElement(ApprovPage, { products: store.products, setProducts: store.setProducts, supplies: store.supplies, setSupplies: store.setSupplies, setDebts: store.setDebts, needsReorder: store.needsReorder }), page === "products" && /* @__PURE__ */ React.createElement(ProductsPage, { products: store.products, setProducts: store.setProducts }), page === "expenses" && /* @__PURE__ */ React.createElement(ExpensesPage, { expenses: store.expenses, setExpenses: store.setExpenses }), page === "debts" && /* @__PURE__ */ React.createElement(DebtsPage, { debts: store.debts, setDebts: store.setDebts }), page === "rapports" && /* @__PURE__ */ React.createElement(RapportsPage, { sales: store.sales, expenses: store.expenses, debts: store.debts, products: store.products, supplies: store.supplies })));
   }
   window.__App = App;
 })();
 
-try{
-  if(!window.__App)throw new Error("App non init");
+try {
+  if(!window.__App) throw new Error("App non init");
   ReactDOM.createRoot(document.getElementById("root")).render(React.createElement(window.__App));
-}catch(e){
-  document.getElementById("root").innerHTML="<div style='padding:30px;color:#EF4444;font-size:13px'>Erreur: "+e.message+"</div>";
+} catch(e) {
+  document.getElementById("root").innerHTML = "<div style='padding:30px;color:#EF4444;font-size:13px'>Erreur: "+e.message+"</div>";
   console.error(e);
 }
-</script></body></html>
+</script>
+</body></html>
