@@ -1,137 +1,36 @@
-<!DOCTYPE html>
-<html lang="fr"><head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>DJINDJIN — Mode Homme</title>
-<link rel="preconnect" href="https://fonts.googleapis.com"/>
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"/>
-
-<!-- Firebase SDK -->
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-
-<style>
-*{margin:0;padding:0;box-sizing:border-box}
-body{background:#0A0F1E;font-family:'Inter',system-ui,sans-serif;color:#FFFFFF}
-#root{min-height:100vh}
-#sync-status{position:fixed;bottom:12px;right:12px;font-size:10px;padding:4px 10px;
-  border-radius:20px;background:#111827;border:1px solid #1E3A5F;color:#94A3B8;z-index:999;
-  transition:all .3s}
-::-webkit-scrollbar{width:4px;height:4px}
-::-webkit-scrollbar-track{background:#111827}
-::-webkit-scrollbar-thumb{background:#C9A84C;border-radius:10px}
-select option{background:#1A2438;color:#FFFFFF}
-button:active{transform:scale(.97)}
-input:focus,select:focus{border-color:#C9A84C !important;box-shadow:0 0 0 2px rgba(201,168,76,.15)}
-</style></head><body>
-
-<div id="root">
-  <div style="display:flex;align-items:center;justify-content:center;min-height:100vh;flex-direction:column;gap:16px">
-    <div style="font-family:'Cormorant Garamond',serif;font-size:42px;font-weight:700;color:#C9A84C;letter-spacing:6px">DJINDJIN</div>
-    <div style="color:#94A3B8;font-size:11px;letter-spacing:3px" id="load-status">Connexion cloud…</div>
-  </div>
-</div>
-
-<div id="sync-status">☁️ Hors ligne</div>
-
-<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-
-<script>
-var {useState,useMemo,useCallback,useEffect,useRef}=React;
-
-// Initialiser Firebase avant l'app
-try {
-  initFirebase();
-  document.getElementById('sync-status').textContent = '☁️ Cloud connecté';
-  document.getElementById('sync-status').style.color = '#10B981';
-  document.getElementById('sync-status').style.borderColor = '#10B981';
-} catch(e) {
-  console.warn('Firebase init:', e);
-  document.getElementById('sync-status').textContent = '📱 Mode local';
-}
-</script>
-
-<script>
-var EliteBundle = (() => {
+<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><title>DJINDJIN - Mode Homme</title><link rel="preconnect" href="https://fonts.googleapis.com"/><link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"/><script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script><script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script><style>*{margin:0;padding:0;box-sizing:border-box}body{background:#0A0F1E;font-family:Inter,system-ui,sans-serif;color:#FFFFFF}#root{min-height:100vh}#sync{position:fixed;bottom:10px;right:10px;font-size:10px;padding:3px 9px;border-radius:20px;background:#111827;border:1px solid #1E3A5F;color:#94A3B8;z-index:999}::-webkit-scrollbar{width:4px;height:4px}::-webkit-scrollbar-thumb{background:#C9A84C;border-radius:10px}select option{background:#1A2438;color:#FFFFFF}button:active{transform:scale(.97)}input:focus,select:focus{border-color:#C9A84C !important;box-shadow:0 0 0 2px rgba(201,168,76,.15)}</style></head><body><div id="root"><div style="display:flex;align-items:center;justify-content:center;min-height:100vh;flex-direction:column;gap:16px"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 60" style="width:200px"><defs><linearGradient id="g1" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#C9A84C"/><stop offset="50%" stop-color="#F0D080"/><stop offset="100%" stop-color="#C9A84C"/></linearGradient></defs><text x="100" y="38" font-family="Georgia,serif" font-size="28" font-weight="700" fill="url(#g1)" text-anchor="middle" letter-spacing="6">DJINDJIN</text><text x="100" y="52" font-family="Arial,sans-serif" font-size="7" fill="#94A3B8" text-anchor="middle" letter-spacing="3">MODE HOMME</text></svg><div style="color:#94A3B8;font-size:11px;letter-spacing:3px">CHARGEMENT...</div></div></div><div id="sync">Cloud...</div><script src="https://unpkg.com/react@18/umd/react.production.min.js"></script><script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script><script>var {useState,useMemo,useCallback,useEffect,useRef}=React;</script><script>var EliteBundle = (() => {
   const { useState, useMemo, useCallback, useEffect, useRef } = React;
-  const XLSX = { utils: { book_new: () => ({ sheets: {}, order: [] }), json_to_sheet: (d) => d, book_append_sheet: (wb, ws, n) => {
-    wb.sheets[n] = ws;
-    wb.order.push(n);
-  } }, writeFile: (wb, fn) => {
-    const n = wb.order[0];
-    const d = wb.sheets[n] || [];
-    if (!d.length) return;
-    const h = Object.keys(d[0]);
-    const rows = [h.join(","), ...d.map((r) => h.map((k) => String(r[k] || "")).join(","))];
-    const b = new Blob([rows.join("\n")], { type: "text/csv" });
-    const u = URL.createObjectURL(b);
-    const a = document.createElement("a");
-    a.href = u;
-    a.download = fn.replace(".xlsx", ".csv");
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-  } };
-  let _db = null;
-  let _firebaseReady = false;
-  async function saveToCloud(data) {
-    try {
-      localStorage.setItem(LS, JSON.stringify(data));
-    } catch (e) {
-    }
-    if (!_firebaseReady || !_db) return;
-    try {
-      const ref = _db.collection("boutiques").doc("djindjin");
-      const batch = _db.batch();
-      const collections = {
-        products: data.products || [],
-        sales: (data.sales || []).slice(0, 500),
-        // Limiter aux 500 dernières ventes
-        expenses: data.expenses || [],
-        debts: data.debts || [],
-        supplies: data.supplies || [],
-        clients: data.clients || []
-      };
-      Object.entries(collections).forEach(([key, val]) => {
-        batch.set(_db.collection("boutiques").doc("djindjin_" + key), { data: val, updatedAt: (/* @__PURE__ */ new Date()).toISOString() });
-      });
-      await batch.commit();
-      console.log("Cloud sync \u2705");
-    } catch (e) {
-      console.warn("Cloud sync \xE9chou\xE9:", e.message);
-    }
-  }
-  async function loadFromCloud() {
-    if (!_firebaseReady || !_db) return loadData();
-    try {
-      const keys = ["products", "sales", "expenses", "debts", "supplies", "clients"];
-      const docs = await Promise.all(keys.map((k) => _db.collection("boutiques").doc("djindjin_" + k).get()));
-      const cloudData = {};
-      let hasCloudData = false;
-      docs.forEach((doc, i) => {
-        if (doc.exists && doc.data().data) {
-          cloudData[keys[i]] = doc.data().data;
-          hasCloudData = true;
-        }
-      });
-      if (hasCloudData) {
-        const merged = { ...SEED, ...cloudData };
-        try {
-          localStorage.setItem(LS, JSON.stringify(merged));
-        } catch (e) {
-        }
-        console.log("Donn\xE9es cloud charg\xE9es \u2705");
-        return merged;
+  const XLSX = {
+    utils: {
+      book_new: () => ({ sheets: {}, order: [] }),
+      json_to_sheet: (d) => d,
+      book_append_sheet: (wb, ws, n) => {
+        wb.sheets[n] = ws;
+        wb.order.push(n);
       }
-    } catch (e) {
-      console.warn("Chargement cloud \xE9chou\xE9, utilisation locale:", e.message);
+    },
+    writeFile: (wb, fn) => {
+      const n = wb.order[0];
+      const d = wb.sheets[n] || [];
+      if (!d.length) return;
+      const h = Object.keys(d[0]);
+      const rows = [h.join(","), ...d.map((r) => h.map((k) => String(r[k] || "")).join(","))];
+      const b = new Blob([rows.join("\n")], { type: "text/csv" });
+      const u = URL.createObjectURL(b);
+      const a = document.createElement("a");
+      a.href = u;
+      a.download = fn.replace(".xlsx", ".csv");
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
     }
-    return loadData();
-  }
+  };
   function MiniBarChart({ data, keys, colors, height }) {
-    const H2 = height || 160, W = 320, H = H2 - 30, PL = 40, PR = 8, PT = 8;
-    if (!data || !data.length) return React.createElement("div", { style: { height: H2, display: "flex", alignItems: "center", justifyContent: "center", color: "#94A3B8", fontSize: 12 } }, "Pas de donn\xE9es");
+    const H2 = height || 160;
+    const W = 320, H = H2 - 30, PL = 40, PR = 8, PT = 8;
+    if (!data || !data.length) {
+      return React.createElement("div", { style: { height: H2, display: "flex", alignItems: "center", justifyContent: "center", color: "#94A3B8", fontSize: 12 } }, "Pas de donn\xE9es");
+    }
     const allV = data.flatMap((d) => (keys || []).map((k) => d[k] || 0));
     const maxV = Math.max(...allV, 1);
     const cW = (W - PL - PR) / data.length;
@@ -158,8 +57,7 @@ var EliteBundle = (() => {
             "g",
             { key: i },
             (keys || []).map((k, ki) => {
-              const val = d[k] || 0, bh = val / maxV * H;
-              const bx = x0 + ki * (bW + 2) + 2, by = PT + H - bh;
+              const val = d[k] || 0, bh = val / maxV * H, bx = x0 + ki * (bW + 2) + 2, by = PT + H - bh;
               return React.createElement("rect", { key: ki, x: bx, y: by, width: bW, height: Math.max(bh, 1), fill: (colors || [])[ki] || "#C9A84C", rx: "2" });
             }),
             React.createElement(
@@ -362,27 +260,10 @@ var EliteBundle = (() => {
       setter((prev) => {
         const next = typeof updater === "function" ? updater(prev) : updater;
         const current = loadData() || SEED;
-        const newData = { ...current, [key]: next };
-        save(newData);
-        saveToCloud(newData).catch(() => {
-        });
+        save({ ...current, [key]: next });
         return next;
       });
     };
-    useEffect(() => {
-      if (cloudLoaded) return;
-      loadFromCloud().then((data) => {
-        if (data) {
-          if (data.products) _setP(data.products);
-          if (data.sales) _setS(data.sales);
-          if (data.expenses) _setE(data.expenses);
-          if (data.debts) _setD(data.debts);
-          if (data.supplies) _setA(data.supplies);
-          if (data.clients) _setC(data.clients || []);
-        }
-        setCloudLoaded(true);
-      });
-    }, []);
     const setProducts = useCallback((v) => persist("products", v, _setP), []);
     const setSales = useCallback((v) => persist("sales", v, _setS), []);
     const setExpenses = useCallback((v) => persist("expenses", v, _setE), []);
@@ -616,33 +497,56 @@ var EliteBundle = (() => {
       `*DJINDJIN*`
     ].join("\n");
   }
+  const LOGO_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 60">
+  <defs>
+    <linearGradient id="g1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#C9A84C"/>
+      <stop offset="50%" style="stop-color:#F0D080"/>
+      <stop offset="100%" style="stop-color:#C9A84C"/>
+    </linearGradient>
+  </defs>
+  <!-- Ornement gauche -->
+  <line x1="8" y1="30" x2="22" y2="30" stroke="#C9A84C" stroke-width="0.8" opacity="0.6"/>
+  <circle cx="8" cy="30" r="1.5" fill="#C9A84C" opacity="0.6"/>
+  <circle cx="15" cy="30" r="1" fill="#C9A84C" opacity="0.4"/>
+  <!-- Texte DJINDJIN -->
+  <text x="100" y="36" 
+    font-family="'Cormorant Garamond', 'Georgia', serif" 
+    font-size="28" font-weight="700" 
+    fill="url(#g1)" 
+    text-anchor="middle" 
+    letter-spacing="6">DJINDJIN</text>
+  <!-- Ornement droit -->
+  <line x1="178" y1="30" x2="192" y2="30" stroke="#C9A84C" stroke-width="0.8" opacity="0.6"/>
+  <circle cx="192" cy="30" r="1.5" fill="#C9A84C" opacity="0.6"/>
+  <circle cx="185" cy="30" r="1" fill="#C9A84C" opacity="0.4"/>
+  <!-- Sous-titre -->
+  <text x="100" y="50" 
+    font-family="'Inter', Arial, sans-serif" 
+    font-size="7" font-weight="400"
+    fill="#94A3B8"
+    text-anchor="middle"
+    letter-spacing="3">MODE HOMME \xB7 PR\xCAT-\xC0-PORTER</text>
+  <!-- Ligne d\xE9co sous le texte -->
+  <line x1="60" y1="54" x2="140" y2="54" stroke="#C9A84C" stroke-width="0.5" opacity="0.4"/>
+</svg>`;
   function printReceipt(sale) {
     const total = saleTotal(sale), remise = sale.remise || 0;
-    const w = window.open("", "_blank", "width=380,height=640");
-    w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Re\xE7u</title>
-<style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:'Courier New',mono;padding:18px;max-width:310px;margin:auto;color:#111}
-.h{text-align:center;border-bottom:2px solid #111;padding-bottom:8px;margin-bottom:8px}.logo{font-size:19px;font-weight:900;letter-spacing:3px}
-.s{font-size:9px;color:#666;letter-spacing:1px;margin-top:2px}.m{font-size:10px;color:#444;margin-bottom:8px;line-height:1.7}
-.d{border-top:1px dashed #aaa;margin:7px 0}.it{margin-bottom:5px;font-size:11px}.r{display:flex;justify-content:space-between}
-.tot{display:flex;justify-content:space-between;font-size:14px;font-weight:900;border-top:2px solid #111;padding-top:7px;margin-top:5px}
-.py{background:#f5f5f5;padding:6px;font-size:10px;margin-top:7px;border-radius:3px}
-.cr{background:#fff3cd;padding:6px;font-size:10px;margin-top:4px;border-radius:3px}
-.ft{text-align:center;font-size:9px;color:#888;margin-top:12px;border-top:1px dashed #aaa;padding-top:6px}
-@media print{body{padding:0}}</style></head><body>
-<div class="h"><div class="logo">DJINDJIN</div><div class="s">MODE HOMME</div><div class="s">Pr\xEAt-\xE0-porter & Accessoires</div></div>
-<div class="m"><div>\u{1F4C5} ${nowStr()}</div><div>\u{1F516} N\xB0 ${sale.id.toUpperCase().slice(-8)}</div><div>\u{1F464} ${sale.client || "Client passage"}${sale.clientPhone ? " \xB7 " + sale.clientPhone : ""}</div></div>
-<div class="d"></div>
-${sale.items.map((it) => `<div class="it"><div>${it.name}</div><div class="r"><span>${it.qty} \xD7 ${fmt(it.sell)}</span><strong>${fmt(it.qty * it.sell)}</strong></div></div>`).join("")}
-<div class="d"></div>
-${remise > 0 ? `<div class="r" style="font-size:10px;color:#555"><span>Sous-total</span><span>${fmt(total + remise)}</span></div><div class="r" style="font-size:10px;color:#c0392b"><span>Remise</span><span>-${fmt(remise)}</span></div>` : ""}
-<div class="tot"><span>TOTAL</span><span>${fmt(total)}</span></div>
-<div class="py">\u{1F4B3} ${sale.payment}${sale.payment === "Cr\xE9dit client" && sale.acompte > 0 ? " \xB7 Acompte : " + fmt(sale.acompte) : ""}</div>
-${sale.payment === "Cr\xE9dit client" ? `<div class="cr">\u26A0\uFE0F Reste d\xFB : <strong>${fmt(total - (sale.acompte || 0))}</strong></div>` : ""}
-<div class="ft">Merci de votre confiance !<br>Conservez ce re\xE7u.<br><strong>DJINDJIN</strong></div>
-</body></html>`);
+    const items = (sale.items || []).map(
+      (it) => '<div class="item"><div class="item-name">' + it.name + '</div><div class="item-detail"><span>' + it.qty + " article" + (it.qty > 1 ? "s" : "") + " \xD7 " + fmt(it.sell) + '</span><span class="item-total">' + fmt(it.qty * it.sell) + "</span></div></div>"
+    ).join("");
+    const remiseHtml = remise > 0 ? '<div class="total-row"><span>Sous-total</span><span>' + fmt(total + remise) + '</span></div><div class="total-row" style="color:#c0392b"><span>Remise</span><span>-' + fmt(remise) + "</span></div>" : "";
+    const payClass = sale.payment === "Esp\xE8ces" ? "cash" : sale.payment === "Orange Money" ? "om" : "credit";
+    const payIcon = sale.payment === "Esp\xE8ces" ? "\u{1F4B5}" : sale.payment === "Orange Money" ? "\u{1F7E0}" : "\u{1F4CB}";
+    const acompteText = sale.payment === "Cr\xE9dit client" && sale.acompte > 0 ? " \xB7 Acompte re\xE7u : " + fmt(sale.acompte) : "";
+    const creditHtml = sale.payment === "Cr\xE9dit client" ? '<div class="credit-box"><div class="warn">\u26A0\uFE0F Reste d\xFB</div><div class="amount">' + fmt(total - (sale.acompte || 0)) + "</div></div>" : "";
+    const clientHtml = sale.client ? '<div class="client-box"><div class="row"><span class="icon">\u{1F464}</span><span class="label">Client</span><span class="val">' + sale.client + "</span></div>" + (sale.clientPhone ? '<div class="row"><span class="icon">\u{1F4DE}</span><span class="label">T\xE9l.</span><span class="val">' + sale.clientPhone + "</span></div>" : "") + "</div>" : "";
+    const html = '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Re\xE7u DJINDJIN</title><link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/><style>*{margin:0;padding:0;box-sizing:border-box}body{background:#fff;font-family:Inter,sans-serif;padding:0;max-width:380px;margin:auto;color:#1a1a1a}.receipt{background:#fff;min-height:100vh;padding:28px 24px}.header{text-align:center;padding-bottom:20px;margin-bottom:20px;border-bottom:1px solid #e8e0d0}.logo{font-family:"Cormorant Garamond",Georgia,serif;font-size:32px;font-weight:700;color:#C9A84C;letter-spacing:6px;margin-bottom:4px}.logo-sub{font-size:8px;color:#94A3B8;letter-spacing:3px;text-transform:uppercase}.logo-line{width:60px;height:1px;background:linear-gradient(90deg,transparent,#C9A84C,transparent);margin:8px auto}.receipt-num{display:flex;justify-content:space-between;align-items:center;background:#faf8f4;border:1px solid #e8e0d0;border-radius:8px;padding:10px 14px;margin-bottom:18px}.receipt-num .label{color:#888;letter-spacing:.5px;text-transform:uppercase;font-size:9px}.receipt-num .value{font-weight:700;color:#1a1a1a;font-size:12px}.client-box{background:#f8f8f8;border-radius:8px;padding:12px 14px;margin-bottom:18px}.row{display:flex;align-items:center;gap:8px;margin-bottom:4px;font-size:12px}.row:last-child{margin-bottom:0}.icon{font-size:14px;width:18px}.label{color:#888;font-size:10px;min-width:40px}.val{font-weight:600;color:#1a1a1a}.section-title{font-size:9px;letter-spacing:2px;text-transform:uppercase;color:#888;margin-bottom:10px;display:flex;align-items:center;gap:8px}.section-title::after{content:"";flex:1;height:1px;background:#e8e0d0}.item{padding:10px 0;border-bottom:1px dashed #e8e0d0}.item:last-child{border-bottom:none}.item-name{font-weight:600;font-size:13px;color:#1a1a1a;margin-bottom:4px}.item-detail{display:flex;justify-content:space-between;font-size:12px;color:#666}.item-total{font-weight:700;color:#1a1a1a}.totals{margin-top:16px;padding-top:14px;border-top:1px solid #e8e0d0}.total-row{display:flex;justify-content:space-between;font-size:12px;color:#666;margin-bottom:6px}.total-final{display:flex;justify-content:space-between;align-items:center;background:linear-gradient(135deg,#0A0F1E,#1A2438);border-radius:10px;padding:14px 16px;margin-top:12px}.total-final .label{color:#94A3B8;font-size:11px;letter-spacing:.5px}.total-final .amount{font-size:22px;font-weight:700;color:#C9A84C;font-family:"Cormorant Garamond",serif;letter-spacing:1px}.payment-box{margin-top:14px;border-radius:8px;padding:11px 14px;font-size:12px}.cash{background:#f0faf4;border:1px solid #c3e6cb}.om{background:#fff7e6;border:1px solid #ffd700}.credit{background:#fff3cd;border:1px solid #ffc107}.payment-label{font-size:9px;letter-spacing:1px;text-transform:uppercase;color:#888;margin-bottom:4px}.payment-mode{font-weight:700;font-size:14px}.cash .payment-mode{color:#1a7a40}.om .payment-mode{color:#ff6600}.credit .payment-mode{color:#856404}.credit-box{background:#fff3cd;border:1px solid #ffc107;border-radius:8px;padding:10px 14px;margin-top:10px;display:flex;justify-content:space-between;align-items:center}.warn{font-size:11px;color:#856404}.credit-box .amount{font-weight:700;font-size:14px;color:#856404}.footer{text-align:center;margin-top:24px;padding-top:16px;border-top:1px solid #e8e0d0}.footer-logo{font-family:"Cormorant Garamond",serif;font-size:20px;font-weight:700;color:#C9A84C;letter-spacing:4px;margin-bottom:4px}.footer-text{font-size:9px;color:#999;letter-spacing:.5px;line-height:1.8}.footer-divider{width:40px;height:1px;background:#C9A84C;margin:8px auto;opacity:.4}@media print{body{padding:0}.receipt{padding:16px 18px}}</style></head><body><div class="receipt"><div class="header"><div class="logo">DJINDJIN</div><div class="logo-sub">Mode Homme \xB7 Pr\xEAt-\xE0-Porter</div><div class="logo-line"></div><div style="font-size:10px;color:#888;letter-spacing:1px">RE\xC7U DE PAIEMENT</div></div><div class="receipt-num"><div><div class="label">N\xB0 Re\xE7u</div><div class="value">#' + sale.id.toUpperCase().slice(-8) + '</div></div><div style="text-align:right"><div class="label">Date & Heure</div><div class="value">' + nowStr() + "</div></div></div>" + clientHtml + '<div class="section-title">Articles achet\xE9s</div>' + items + '<div class="totals">' + remiseHtml + '<div class="total-final"><div><div class="label">TOTAL \xC0 PAYER</div><div class="amount">' + fmt(total) + '</div></div><div style="text-align:right;color:#94A3B8;font-size:11px">' + (sale.items || []).reduce((s, it) => s + it.qty, 0) + ' art.</div></div></div><div class="payment-box ' + payClass + '"><div class="payment-label">Mode de paiement</div><div class="payment-mode">' + payIcon + " " + sale.payment + acompteText + "</div></div>" + creditHtml + '<div class="footer"><div class="footer-logo">DJINDJIN</div><div class="footer-divider"></div><div class="footer-text">Merci de votre confiance !<br>Conservez ce re\xE7u comme preuve d2019achat.<br>Mode Homme \xB7 Pr\xEAt-\xE0-Porter & Accessoires</div></div></div></body></html>';
+    const w = window.open("", "_blank", "width=420,height=700");
+    w.document.write(html);
     w.document.close();
     w.focus();
-    setTimeout(() => w.print(), 400);
+    setTimeout(() => w.print(), 600);
   }
   const Card = ({ children, style = {} }) => /* @__PURE__ */ React.createElement("div", { style: { background: T.surface, borderRadius: 14, border: `1px solid ${T.border}`, padding: 20, ...style } }, children);
   const Btn = ({ children, variant = "primary", onClick, small, disabled, full, style = {} }) => {
@@ -820,13 +724,13 @@ ${sale.payment === "Cr\xE9dit client" ? `<div class="cr">\u26A0\uFE0F Reste d\xF
     } })), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: T.muted, marginTop: 4 } }, mc.forecast ? Math.min(Math.round(mc.curCA / mc.forecast * 100), 100) : 0, "% de la pr\xE9vision atteint"))))), /* @__PURE__ */ React.createElement(Card, null, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 13, fontWeight: 700, color: T.text, marginBottom: 14 } }, "\xC9volution sur 12 mois"), /* @__PURE__ */ React.createElement(ResponsiveContainer, { width: "100%", height: 190 }, /* @__PURE__ */ React.createElement(BarChart, { data: monthlyStats, barGap: 2 }, /* @__PURE__ */ React.createElement(CartesianGrid, { strokeDasharray: "3 3", stroke: T.border, vertical: false }), /* @__PURE__ */ React.createElement(XAxis, { dataKey: "label", ...axisP }), /* @__PURE__ */ React.createElement(YAxis, { tickFormatter: fmtK, ...axisP }), /* @__PURE__ */ React.createElement(Tooltip, { formatter: (v) => fmt(v), contentStyle: tooltipSt }), /* @__PURE__ */ React.createElement(Legend, { wrapperStyle: { fontSize: 11, color: T.muted } }), /* @__PURE__ */ React.createElement(Bar, { dataKey: "ca", name: "CA", fill: T.gold, radius: [3, 3, 0, 0] }), /* @__PURE__ */ React.createElement(Bar, { dataKey: "marge", name: "Marge brute", fill: T.success, radius: [3, 3, 0, 0] }), /* @__PURE__ */ React.createElement(Bar, { dataKey: "profit", name: "Profit net", fill: T.purple, radius: [3, 3, 0, 0] })))), /* @__PURE__ */ React.createElement("div", { style: { display: "grid", gridTemplateColumns: "1.3fr 1fr", gap: 16 } }, /* @__PURE__ */ React.createElement(Card, null, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 13, fontWeight: 700, color: T.text, marginBottom: 14 } }, "Top produits \u2014 Marge g\xE9n\xE9r\xE9e"), productMargins.slice(0, 5).map((p, i) => /* @__PURE__ */ React.createElement("div", { key: p.name, style: { display: "flex", alignItems: "center", gap: 10, marginBottom: 11 } }, /* @__PURE__ */ React.createElement("div", { style: { width: 22, height: 22, borderRadius: "50%", background: T.gold + "22", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, fontWeight: 800, color: T.gold } }, i + 1), /* @__PURE__ */ React.createElement("div", { style: { flex: 1, minWidth: 0 } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 12, fontWeight: 700, color: T.text, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" } }, p.name), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", justifyContent: "space-between", marginTop: 2 } }, /* @__PURE__ */ React.createElement("span", { style: { fontSize: 11, color: T.success, fontWeight: 700 } }, fmt(p.margin)), /* @__PURE__ */ React.createElement("span", { style: { fontSize: 10, color: T.muted } }, p.pct, "% \xB7 ", p.qty, " vendus")), /* @__PURE__ */ React.createElement("div", { style: { background: T.border, borderRadius: 10, height: 4, marginTop: 4 } }, /* @__PURE__ */ React.createElement("div", { style: { width: `${Math.min(p.pct, 100)}%`, background: p.pct >= 40 ? T.success : p.pct >= 20 ? T.warning : T.danger, height: 4, borderRadius: 10 } })))))), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 12 } }, /* @__PURE__ */ React.createElement(Card, { style: { borderLeft: `4px solid ${T.gold}`, padding: "12px 16px" } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, fontWeight: 700, color: T.gold, marginBottom: 6 } }, "\u{1F4D0} FORMULE B\xC9N\xC9FICE NET"), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, color: T.muted, fontFamily: "monospace", lineHeight: 2 } }, "CA \u2212 Achats \u2212 D\xE9penses \u2212 Dettes fourn.", /* @__PURE__ */ React.createElement("br", null), /* @__PURE__ */ React.createElement("span", { style: { color: kpis.netProfit >= 0 ? T.success : T.danger, fontWeight: 900, fontSize: 14 } }, "= ", fmt(kpis.netProfit)))), needsReorder.length > 0 && /* @__PURE__ */ React.createElement(Card, { style: { borderLeft: `4px solid ${T.danger}`, padding: "12px 16px" } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, fontWeight: 700, color: T.danger, marginBottom: 6 } }, "\u26A0\uFE0F ALERTES STOCK (", needsReorder.length, ")"), needsReorder.slice(0, 5).map((p) => /* @__PURE__ */ React.createElement("div", { key: p.id, style: { display: "flex", justifyContent: "space-between", fontSize: 11, marginBottom: 4 } }, /* @__PURE__ */ React.createElement("span", { style: { color: T.text } }, p.name), /* @__PURE__ */ React.createElement("span", { style: { color: T.danger, fontWeight: 700 } }, p.qty, "/", p.alert)))))));
   }
   function CaissePage({ products, sales, setSales, setProducts, setDebts, setClients, userRole }) {
-    var _a;
     const blank = { date: today(), client: "", clientPhone: "", payment: PAY_MODES[0], remise: 0, acompte: 0, note: "" };
     const [form, setForm] = useState(blank);
     const [items, setItems] = useState([]);
     const [selP, setSelP] = useState("");
     const [selQ, setSelQ] = useState(1);
     const [selBuy, setSelBuy] = useState("");
+    const [selSell, setSelSell] = useState("");
     const [prodSearch, setProdSearch] = useState("");
     const [showDrop, setShowDrop] = useState(false);
     const [receipt, setReceipt] = useState(null);
@@ -839,19 +743,22 @@ ${sale.payment === "Cr\xE9dit client" ? `<div class="cr">\u26A0\uFE0F Reste d\xF
       const pid = e.target.value;
       setSelP(pid);
       const p = products.find((x) => x.id === pid);
-      setSelBuy(p ? p.buy : "");
+      setSelBuy(p ? String(p.buy) : "");
+      setSelSell(p ? String(p.sell) : "");
     };
     const addItem = () => {
       const p = products.find((x) => x.id === selP);
       if (!p || selQ < 1) return;
       const buyPrice = +selBuy || p.buy;
+      const sellPrice = +selSell || p.sell;
       setItems((prev) => {
         const ex = prev.find((i) => i.pid === p.id);
-        return ex ? prev.map((i) => i.pid === p.id ? { ...i, qty: i.qty + selQ, buy: buyPrice } : i) : [...prev, { pid: p.id, name: p.name, qty: +selQ, buy: buyPrice, sell: p.sell }];
+        return ex ? prev.map((i) => i.pid === p.id ? { ...i, qty: i.qty + selQ, buy: buyPrice, sell: sellPrice } : i) : [...prev, { pid: p.id, name: p.name, qty: +selQ, buy: buyPrice, sell: sellPrice }];
       });
       setSelP("");
       setSelQ(1);
       setSelBuy("");
+      setSelSell("");
     };
     const confirmSale = () => {
       if (!items.length) return;
@@ -918,11 +825,15 @@ ${sale.payment === "Cr\xE9dit client" ? `<div class="cr">\u26A0\uFE0F Reste d\xF
         textDecoration: ann ? "line-through" : "none",
         fontWeight: 600
       } }, (s.items || []).map((it) => it.name + " \xD7" + it.qty).join(", "))), /* @__PURE__ */ React.createElement(TD, { style: { fontFamily: "monospace", fontWeight: 800, color: ann ? T.muted : T.gold, whiteSpace: "nowrap" } }, fmt(saleTotal(s))), /* @__PURE__ */ React.createElement(TD, null, /* @__PURE__ */ React.createElement(Badge, { label: s.payment, color: ann ? T.muted : PAY_COLOR[s.payment] || T.muted, small: true })), /* @__PURE__ */ React.createElement(TD, null, /* @__PURE__ */ React.createElement(Badge, { label: ann ? "Annul\xE9e" : "OK", color: ann ? T.danger : T.success, small: true })), /* @__PURE__ */ React.createElement(TD, { style: { whiteSpace: "nowrap" } }, !ann && /* @__PURE__ */ React.createElement(Btn, { small: true, variant: "ghost", onClick: () => setReceipt(s) }, "\u{1F9FE}"), !ann && userRole === "admin" && /* @__PURE__ */ React.createElement(Btn, { small: true, variant: "danger", style: { marginLeft: 4 }, onClick: () => setCancelConfirm(s) }, "\u2715")));
-    }))))) : /* @__PURE__ */ React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 12 } }, /* @__PURE__ */ React.createElement(Card, null, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, fontWeight: 700, color: T.gold, marginBottom: 10, letterSpacing: 0.5 } }, "CLIENT"), /* @__PURE__ */ React.createElement("div", { style: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 } }, /* @__PURE__ */ React.createElement(Input, { label: "Nom", value: form.client, onChange: (e) => setForm((f) => ({ ...f, client: e.target.value })), placeholder: "Mamadou\u2026" }), /* @__PURE__ */ React.createElement(Input, { label: "T\xE9l\xE9phone", value: form.clientPhone, onChange: (e) => setForm((f) => ({ ...f, clientPhone: e.target.value })), placeholder: "620000000" }))), /* @__PURE__ */ React.createElement(Card, null, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, fontWeight: 700, color: T.gold, marginBottom: 10, letterSpacing: 0.5 } }, "AJOUTER UN ARTICLE"), /* @__PURE__ */ React.createElement(Sel, { label: "Produit", value: selP, onChange: (e) => {
-      setSelP(e.target.value);
-      const p = products.find((x) => x.id === e.target.value);
-      setSelBuy(p ? String(p.buy) : "");
-    }, options: [{ v: "", l: "\u2014 Choisir \u2014" }, ...products.filter((p) => p.qty > 0).map((p) => ({ v: p.id, l: p.name + " (" + p.qty + ")" }))] }), /* @__PURE__ */ React.createElement("div", { style: { display: "grid", gridTemplateColumns: "80px 1fr auto", gap: 8, marginTop: 10, alignItems: "flex-end" } }, /* @__PURE__ */ React.createElement(Input, { label: "Qt\xE9", type: "number", min: "1", value: selQ, onChange: (e) => setSelQ(+e.target.value) }), /* @__PURE__ */ React.createElement(Input, { label: "Prix achat", type: "number", value: selBuy, onChange: (e) => setSelBuy(e.target.value), placeholder: "GNF" }), /* @__PURE__ */ React.createElement(Btn, { onClick: addItem, disabled: !selP || selQ < 1 }, "+")), selP && selBuy && /* @__PURE__ */ React.createElement("div", { style: { fontSize: 11, color: T.success, marginTop: 6, fontWeight: 700 } }, "Marge : ", fmt((((_a = products.find((x) => x.id === selP)) == null ? void 0 : _a.sell) || 0) - +selBuy))), items.length > 0 && /* @__PURE__ */ React.createElement(Card, { style: { padding: 0, overflow: "hidden" } }, /* @__PURE__ */ React.createElement("div", { style: { padding: "8px 14px", borderBottom: `1px solid ${T.border}`, fontSize: 12, fontWeight: 700, color: T.text } }, "Panier (", items.length, " article", items.length > 1 ? "s" : "", ")"), items.map((it, i) => {
+    }))))) : /* @__PURE__ */ React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 12 } }, /* @__PURE__ */ React.createElement(Card, null, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, fontWeight: 700, color: T.gold, marginBottom: 10, letterSpacing: 0.5 } }, "CLIENT"), /* @__PURE__ */ React.createElement("div", { style: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 } }, /* @__PURE__ */ React.createElement(Input, { label: "Nom", value: form.client, onChange: (e) => setForm((f) => ({ ...f, client: e.target.value })), placeholder: "Mamadou\u2026" }), /* @__PURE__ */ React.createElement(Input, { label: "T\xE9l\xE9phone", value: form.clientPhone, onChange: (e) => setForm((f) => ({ ...f, clientPhone: e.target.value })), placeholder: "620000000" }))), /* @__PURE__ */ React.createElement(Card, null, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, fontWeight: 700, color: T.gold, marginBottom: 10, letterSpacing: 0.5 } }, "AJOUTER UN ARTICLE"), /* @__PURE__ */ React.createElement(
+      Sel,
+      {
+        label: "Produit",
+        value: selP,
+        onChange: handleSelProd,
+        options: [{ v: "", l: "\u2014 Choisir \u2014" }, ...products.filter((p) => p.qty > 0).map((p) => ({ v: p.id, l: p.name + " (" + p.qty + ")" }))]
+      }
+    ), /* @__PURE__ */ React.createElement("div", { style: { display: "grid", gridTemplateColumns: "60px 1fr 1fr auto", gap: 8, marginTop: 10, alignItems: "flex-end" } }, /* @__PURE__ */ React.createElement(Input, { label: "Qt\xE9", type: "number", min: "1", value: selQ, onChange: (e) => setSelQ(+e.target.value) }), /* @__PURE__ */ React.createElement(Input, { label: "Prix achat", type: "number", value: selBuy, onChange: (e) => setSelBuy(e.target.value), placeholder: "GNF" }), /* @__PURE__ */ React.createElement(Input, { label: "Prix vente", type: "number", value: selSell, onChange: (e) => setSelSell(e.target.value), placeholder: "GNF" }), /* @__PURE__ */ React.createElement(Btn, { onClick: addItem, disabled: !selP || selQ < 1 }, "+")), selP && selBuy && selSell && /* @__PURE__ */ React.createElement("div", { style: { fontSize: 11, color: T.success, marginTop: 6, fontWeight: 700 } }, "Marge : ", fmt(+selSell - +selBuy), " (", +selSell ? Math.round((+selSell - +selBuy) / +selSell * 100) : 0, "%)")), items.length > 0 && /* @__PURE__ */ React.createElement(Card, { style: { padding: 0, overflow: "hidden" } }, /* @__PURE__ */ React.createElement("div", { style: { padding: "8px 14px", borderBottom: `1px solid ${T.border}`, fontSize: 12, fontWeight: 700, color: T.text } }, "Panier (", items.length, " article", items.length > 1 ? "s" : "", ")"), items.map((it, i) => {
       const mg = it.qty * (it.sell - it.buy);
       return /* @__PURE__ */ React.createElement("div", { key: it.pid, style: { padding: "10px 14px", borderBottom: `1px solid ${T.border}`, background: i % 2 === 0 ? T.surface : T.elevated + "55" } }, /* @__PURE__ */ React.createElement("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 } }, /* @__PURE__ */ React.createElement("span", { style: { fontWeight: 700, color: T.text, fontSize: 13 } }, it.name), /* @__PURE__ */ React.createElement(
         "button",
@@ -931,7 +842,7 @@ ${sale.payment === "Cr\xE9dit client" ? `<div class="cr">\u26A0\uFE0F Reste d\xF
           style: { background: "none", border: "none", color: T.danger, cursor: "pointer", fontSize: 16, lineHeight: 1 }
         },
         "\u2715"
-      )), /* @__PURE__ */ React.createElement("div", { style: { display: "grid", gridTemplateColumns: "60px 1fr 1fr 80px", gap: 8, alignItems: "center" } }, /* @__PURE__ */ React.createElement(
+      )), /* @__PURE__ */ React.createElement("div", { style: { display: "grid", gridTemplateColumns: "50px 1fr 1fr 70px", gap: 8, alignItems: "center" } }, /* @__PURE__ */ React.createElement(
         "input",
         {
           type: "number",
@@ -940,7 +851,16 @@ ${sale.payment === "Cr\xE9dit client" ? `<div class="cr">\u26A0\uFE0F Reste d\xF
           onChange: (e) => setItems((p) => p.map((x) => x.pid === it.pid ? { ...x, qty: +e.target.value } : x)),
           style: { background: T.elevated, border: `1px solid ${T.border}`, borderRadius: 6, padding: "4px 6px", color: T.text, fontSize: 12, textAlign: "center" }
         }
-      ), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 11, color: T.muted } }, "\xD7 ", fmt(it.sell)), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 12, fontWeight: 800, color: T.gold } }, fmt(it.qty * it.sell)), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 11, color: mg >= 0 ? T.success : T.danger, fontWeight: 700, textAlign: "right" } }, fmt(mg))));
+      ), /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 9, color: T.muted, marginBottom: 2 } }, "P. VENTE"), /* @__PURE__ */ React.createElement(
+        "input",
+        {
+          type: "number",
+          min: "0",
+          value: it.sell,
+          onChange: (e) => setItems((p) => p.map((x) => x.pid === it.pid ? { ...x, sell: +e.target.value } : x)),
+          style: { width: "100%", background: T.gold + "18", border: `1px solid ${T.gold}55`, borderRadius: 6, padding: "3px 6px", color: T.text, fontSize: 12, fontFamily: "monospace" }
+        }
+      )), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 12, fontWeight: 800, color: T.gold } }, fmt(it.qty * it.sell)), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 11, color: mg >= 0 ? T.success : T.danger, fontWeight: 700, textAlign: "right" } }, fmt(mg))));
     }), /* @__PURE__ */ React.createElement("div", { style: { padding: "10px 14px", background: T.elevated } }, /* @__PURE__ */ React.createElement("div", { style: { display: "flex", justifyContent: "space-between", fontSize: 13, marginBottom: 6 } }, /* @__PURE__ */ React.createElement("span", { style: { color: T.muted } }, "Sous-total"), /* @__PURE__ */ React.createElement("span", { style: { fontFamily: "monospace", fontWeight: 700 } }, fmt(total))), /* @__PURE__ */ React.createElement(Input, { label: "Remise (GNF)", type: "number", min: "0", value: form.remise, onChange: (e) => setForm((f) => ({ ...f, remise: e.target.value })) }), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", justifyContent: "space-between", marginTop: 10, fontSize: 18, fontWeight: 900 } }, /* @__PURE__ */ React.createElement("span", { style: { color: T.muted } }, "NET"), /* @__PURE__ */ React.createElement("span", { style: { color: T.gold, fontFamily: "monospace" } }, fmt(net))))), /* @__PURE__ */ React.createElement(Card, null, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10, fontWeight: 700, color: T.gold, marginBottom: 10, letterSpacing: 0.5 } }, "PAIEMENT"), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 9 } }, /* @__PURE__ */ React.createElement(Sel, { label: "Mode", value: form.payment, onChange: (e) => setForm((f) => ({ ...f, payment: e.target.value })), options: PAY_MODES }), /* @__PURE__ */ React.createElement(Input, { label: "Date", type: "date", value: form.date, onChange: (e) => setForm((f) => ({ ...f, date: e.target.value })) }), form.payment === "Cr\xE9dit client" && /* @__PURE__ */ React.createElement(
       Input,
       {
@@ -1565,7 +1485,7 @@ td{padding:7px 8px;border-bottom:1px solid #eee}tr:nth-child(even){background:#f
       transform: sideOpen ? "translateX(0)" : "translateX(-100%)",
       transition: "transform .25s ease",
       "@media(min-width:768px)": { transform: "translateX(0)" }
-    } }, /* @__PURE__ */ React.createElement("div", { style: { padding: "18px 16px 12px", borderBottom: `1px solid ${T.border}` } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 9, color: T.muted, letterSpacing: 2, marginBottom: 2 } }, "BOUTIQUE \u2014 MODE HOMME"), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 21, fontWeight: 900, color: T.gold, lineHeight: 1, letterSpacing: 2, fontFamily: "'Cormorant Garamond',serif" } }, "DJINDJIN"), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 9, color: T.muted, marginTop: 2 } }, "Pr\xEAt-\xE0-porter & Accessoires")), /* @__PURE__ */ React.createElement("div", { style: { padding: "10px 14px", borderBottom: `1px solid ${T.border}`, display: "flex", alignItems: "center", gap: 10 } }, /* @__PURE__ */ React.createElement("div", { style: { width: 30, height: 30, borderRadius: "50%", background: user.color + "22", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14 } }, user.role === "admin" ? "\u{1F451}" : "\u{1F9D1}\u200D\u{1F4BC}"), /* @__PURE__ */ React.createElement("div", { style: { flex: 1 } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 12, fontWeight: 700, color: T.text } }, user.name), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 9, color: user.color, fontWeight: 700, textTransform: "uppercase", letterSpacing: 0.5 } }, user.role)), /* @__PURE__ */ React.createElement("button", { onClick: () => setUser(null), style: { background: "none", border: "none", color: T.muted, cursor: "pointer", fontSize: 13, padding: 4 }, title: "D\xE9connexion" }, "\u23CF")), /* @__PURE__ */ React.createElement("nav", { style: { flex: 1, padding: "10px 7px" } }, visibleNav.map((item) => {
+    } }, /* @__PURE__ */ React.createElement("div", { style: { padding: "14px 16px 12px", borderBottom: `1px solid ${T.border}` } }, /* @__PURE__ */ React.createElement("div", { dangerouslySetInnerHTML: { __html: LOGO_SVG }, style: { width: "100%", maxWidth: 180 } })), /* @__PURE__ */ React.createElement("div", { style: { padding: "10px 14px", borderBottom: `1px solid ${T.border}`, display: "flex", alignItems: "center", gap: 10 } }, /* @__PURE__ */ React.createElement("div", { style: { width: 30, height: 30, borderRadius: "50%", background: user.color + "22", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14 } }, user.role === "admin" ? "\u{1F451}" : "\u{1F9D1}\u200D\u{1F4BC}"), /* @__PURE__ */ React.createElement("div", { style: { flex: 1 } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 12, fontWeight: 700, color: T.text } }, user.name), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 9, color: user.color, fontWeight: 700, textTransform: "uppercase", letterSpacing: 0.5 } }, user.role)), /* @__PURE__ */ React.createElement("button", { onClick: () => setUser(null), style: { background: "none", border: "none", color: T.muted, cursor: "pointer", fontSize: 13, padding: 4 }, title: "D\xE9connexion" }, "\u23CF")), /* @__PURE__ */ React.createElement("nav", { style: { flex: 1, padding: "10px 7px" } }, visibleNav.map((item) => {
       const badge = item.id === "approv" && alerts ? alerts : item.id === "debts" && overdues ? overdues : 0;
       return /* @__PURE__ */ React.createElement(
         "button",
@@ -1636,17 +1556,8 @@ td{padding:7px 8px;border-bottom:1px solid #eee}tr:nth-child(even){background:#f
         }
       },
       "\u2630"
-    ), /* @__PURE__ */ React.createElement("div", { style: { fontFamily: "'Cormorant Garamond',serif", fontSize: 20, fontWeight: 700, color: T.gold, letterSpacing: 2 } }, "DJINDJIN"), /* @__PURE__ */ React.createElement("div", { style: { marginLeft: "auto", display: "flex", alignItems: "center", gap: 8 } }, alerts > 0 && /* @__PURE__ */ React.createElement("span", { style: { background: T.danger, color: "#fff", fontSize: 10, fontWeight: 800, padding: "3px 8px", borderRadius: 20 } }, alerts, " \u26A0\uFE0F"), /* @__PURE__ */ React.createElement("span", { style: { fontSize: 12, color: T.muted } }, user.name))), /* @__PURE__ */ React.createElement("main", { style: { marginLeft: 0, flex: 1, padding: "68px 16px 24px", minHeight: "100vh", boxSizing: "border-box" } }, page === "dashboard" && /* @__PURE__ */ React.createElement(DashboardPage, { kpis: store.kpis, monthlyStats: store.monthlyStats, monthComparison: store.monthComparison, productMargins: store.productMargins, needsReorder: store.needsReorder, stockValue: store.stockValue }), page === "caisse" && /* @__PURE__ */ React.createElement(CaissePage, { products: store.products, sales: store.sales, setSales: store.setSales, setProducts: store.setProducts, setDebts: store.setDebts, setClients: store.setClients, userRole: user.role }), page === "clients" && /* @__PURE__ */ React.createElement(ClientsPage, { clientStats: store.clientStats, setClients: store.setClients, sales: store.sales }), page === "inventaire" && /* @__PURE__ */ React.createElement(InventairePage, { products: store.products, setProducts: store.setProducts, stockValue: store.stockValue, stockMovements: store.stockMovements }), page === "approv" && /* @__PURE__ */ React.createElement(ApprovPage, { products: store.products, setProducts: store.setProducts, supplies: store.supplies, setSupplies: store.setSupplies, setDebts: store.setDebts, needsReorder: store.needsReorder }), page === "products" && /* @__PURE__ */ React.createElement(ProductsPage, { products: store.products, setProducts: store.setProducts }), page === "expenses" && /* @__PURE__ */ React.createElement(ExpensesPage, { expenses: store.expenses, setExpenses: store.setExpenses }), page === "debts" && /* @__PURE__ */ React.createElement(DebtsPage, { debts: store.debts, setDebts: store.setDebts }), page === "rapports" && /* @__PURE__ */ React.createElement(RapportsPage, { sales: store.sales, expenses: store.expenses, debts: store.debts, products: store.products, supplies: store.supplies })));
+    ), /* @__PURE__ */ React.createElement("div", { style: { fontFamily: "'Cormorant Garamond',serif", fontSize: 20, fontWeight: 700, color: T.gold, letterSpacing: 2 }, dangerouslySetInnerHTML: { __html: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 36" style="height:28px"><text x="80" y="28" font-family="Georgia,serif" font-size="22" font-weight="700" fill="#C9A84C" text-anchor="middle" letter-spacing="5">DJINDJIN</text></svg>' } }), /* @__PURE__ */ React.createElement("div", { style: { marginLeft: "auto", display: "flex", alignItems: "center", gap: 8 } }, alerts > 0 && /* @__PURE__ */ React.createElement("span", { style: { background: T.danger, color: "#fff", fontSize: 10, fontWeight: 800, padding: "3px 8px", borderRadius: 20 } }, alerts, " \u26A0\uFE0F"), /* @__PURE__ */ React.createElement("span", { style: { fontSize: 12, color: T.muted } }, user.name))), /* @__PURE__ */ React.createElement("main", { style: { marginLeft: 0, flex: 1, padding: "68px 16px 24px", minHeight: "100vh", boxSizing: "border-box" } }, page === "dashboard" && /* @__PURE__ */ React.createElement(DashboardPage, { kpis: store.kpis, monthlyStats: store.monthlyStats, monthComparison: store.monthComparison, productMargins: store.productMargins, needsReorder: store.needsReorder, stockValue: store.stockValue }), page === "caisse" && /* @__PURE__ */ React.createElement(CaissePage, { products: store.products, sales: store.sales, setSales: store.setSales, setProducts: store.setProducts, setDebts: store.setDebts, setClients: store.setClients, userRole: user.role }), page === "clients" && /* @__PURE__ */ React.createElement(ClientsPage, { clientStats: store.clientStats, setClients: store.setClients, sales: store.sales }), page === "inventaire" && /* @__PURE__ */ React.createElement(InventairePage, { products: store.products, setProducts: store.setProducts, stockValue: store.stockValue, stockMovements: store.stockMovements }), page === "approv" && /* @__PURE__ */ React.createElement(ApprovPage, { products: store.products, setProducts: store.setProducts, supplies: store.supplies, setSupplies: store.setSupplies, setDebts: store.setDebts, needsReorder: store.needsReorder }), page === "products" && /* @__PURE__ */ React.createElement(ProductsPage, { products: store.products, setProducts: store.setProducts }), page === "expenses" && /* @__PURE__ */ React.createElement(ExpensesPage, { expenses: store.expenses, setExpenses: store.setExpenses }), page === "debts" && /* @__PURE__ */ React.createElement(DebtsPage, { debts: store.debts, setDebts: store.setDebts }), page === "rapports" && /* @__PURE__ */ React.createElement(RapportsPage, { sales: store.sales, expenses: store.expenses, debts: store.debts, products: store.products, supplies: store.supplies })));
   }
   window.__App = App;
 })();
-
-try {
-  if(!window.__App) throw new Error("App non init");
-  ReactDOM.createRoot(document.getElementById("root")).render(React.createElement(window.__App));
-} catch(e) {
-  document.getElementById("root").innerHTML = "<div style='padding:30px;color:#EF4444;font-size:13px'>Erreur: "+e.message+"</div>";
-  console.error(e);
-}
-</script>
-</body></html>
+</script><script>try{initFirebase();document.getElementById("sync").textContent="Cloud OK";document.getElementById("sync").style.color="#10B981";}catch(e){document.getElementById("sync").textContent="Local";}try{if(!window.__App)throw new Error("App");ReactDOM.createRoot(document.getElementById("root")).render(React.createElement(window.__App));}catch(e){document.getElementById("root").innerHTML="<div style='padding:30px;color:#EF4444;font-size:13px'>Erreur: "+e.message+"</div>";}</script></body></html>
